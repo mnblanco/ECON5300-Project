@@ -1,9 +1,17 @@
 ---
 title: "Prelim EDa"
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
 ---
+
+
+```{r}
+# Course: ECON 5330
+# Title: EDA Assignment
+# Date: Jan 22, 2019
+# Author: Haodi Tu, Majorie Blanco, Joseph Thomson
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
@@ -16,6 +24,11 @@ library(mosaic)
 ```{r}
 ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 ```
+
++ This survey contains 30224 observations, and 284 variables
++ Select only a few of varibles to perform an EDA
+
+
 
 ```{r}
 attr(ss16ppr$RT, "label") <- "Record Type"
@@ -34,6 +47,11 @@ ss16ppr$RAC2P <- as.factor(ss16ppr$RAC2P)
 ss16ppr$RAC3P <- as.factor(ss16ppr$RAC3P)
 ss16ppr$SCHL <- as.factor(ss16ppr$SCHL)
 ```
+
+We were asked to perform an exploratory data analysis (EDA) based on American Community Survey, and our research questions are: 1. In Puerto Rico, how does earnings vary by educational attainment? 2. How does earnigs vary by how well English is spoken? 
+
+Based on these two questions, we needed several attributes from the survey, which are ss16ppr$RT, ss16ppr$RAC1P, ss16ppr$RAC2P, ss16ppr$RAC3P, ss16ppr$ENG, ss16ppr$DREM, ss16ppr$SCHL. In detail, we looked into race diversity, marital status, ability to speak English, cognitive difficulty, educational attainment, and gender in Puerto Rico.
+
 
 ## Recoded detailed race code
  
@@ -55,6 +73,9 @@ ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
 ss16ppr %>%  group_by(RAC1P) %>% summarise(n()) 
 ```
 
++ In Puerto Rico, majority of people identify themselves as white.
+
+
 ```{r}
 ggplot(ss16ppr,  aes(RAC1P)) +
   geom_bar()  +
@@ -62,6 +83,10 @@ ggplot(ss16ppr,  aes(RAC1P)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
+
++ Most of people are white
++ Minority races include American Indian, American Indian and Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated
+
 
 ## Marital status
 
@@ -103,6 +128,9 @@ ss16ppr <- mutate(ss16ppr, ENG = derivedFactor(
 ss16ppr %>%  group_by(ENG) %>% summarise(n()) 
 ```
 
++ About half of population do not speak English well
+
+
 ```{r}
 ggplot(ss16ppr,  aes(ENG)) +
   geom_bar()  +
@@ -124,6 +152,9 @@ ss16ppr <- mutate(ss16ppr, DREM = derivedFactor(
 ss16ppr %>%  group_by(DREM) %>% summarise(n()) 
 ```
 
++ Majority of people (approximately 88%) do not have cognitive difficulty
+
+
 ```{r}
 ggplot(ss16ppr,  aes(DREM)) +
   geom_bar()  +
@@ -131,7 +162,7 @@ ggplot(ss16ppr,  aes(DREM)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
-
+ 
 ## Educational attainment
 Note: 16 .Regular high school diploma
 
@@ -142,6 +173,13 @@ ggplot(ss16ppr,  aes(SCHL)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
+
++ We will category people in four education level
+    + People in sec 0 - 15 don't have diploma and are considered as no education 
+    + People in sec 16 - 17 have high school education  
+    + People in sec 18 - 21 have college education
+    + People in sec 22 - 24 have after bachelor's education  
+
 
 ```{r}
 ggplot(ss16ppr,  aes(AGEP)) +
@@ -164,6 +202,9 @@ ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
 ss16ppr %>%  group_by(SEX) %>% summarise(n()) 
 ```
 
++ Gender is nearly equalized in Puerto Rico
+
+
 ```{r}
 ggplot(ss16ppr,  aes(SEX)) +
   geom_bar()  +
@@ -171,3 +212,4 @@ ggplot(ss16ppr,  aes(SEX)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
+
