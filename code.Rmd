@@ -1,11 +1,11 @@
 ---
 title: "Labor Market Analysis"
-author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
+author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
+  pdf_document: default
   html_document: default
   word_document: default
-  pdf_document: default
 ---
 
 ```{r, echo=FALSE}
@@ -37,9 +37,12 @@ ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 #kable(ss16ppr)
 ```
 
-We use data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals who are TBD. The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics, and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
+We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
+1) How do earnings vary by education level?
+2) How does the premium for education vary by gender?
+The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
 
-We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and selfemployment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hr per week in a usual work week over this period. 
+We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
 
 <!-- Our sample consists of 1,443 deaf or hard-of-hearing men, 172,048 men without a hearing disability, 728 deaf or hard-of-hearing women, and 134,877 women without a hearing disability. -->
 
@@ -268,13 +271,13 @@ kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
 
 # Educational attainment
 
-TODO: Please update.  This is not the case
-
-+ We will category people in four education level
-    + People in sec 0 - 15 don't have diploma and are considered as no education 
-    + People in sec 16 - 17 have high school education  
-    + People in sec 18 - 21 have college education
-    + People in sec 22 - 24 have after bachelor's education  
++ We will categorize people into seven education levels
+    + HS diploma or equivalent
+    + Some college
+    + Associate's degree
+    + Bachelor's degree
+    + Professional degree
+    + Doctorate degree
     
 ```{r}
 kable(ss16ppr %>%  group_by(SCHL) %>% summarise(Count = n())) %>%
