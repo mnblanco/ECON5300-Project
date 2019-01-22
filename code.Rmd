@@ -8,6 +8,14 @@ output:
   pdf_document: default
 ---
 
+
+```{r}
+# Course: ECON 5330
+# Title: EDA Assignment
+# Date: Jan 22, 2019
+# Author: Haodi Tu, Majorie Blanco, Joseph Thomson
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -32,11 +40,17 @@ ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 #kable(ss16ppr)
 ```
 
+<<<<<<< HEAD
 We use data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals who are TBD. The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics, and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
 
 We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and selfemployment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hr per week in a usual work week over this period. 
 
 <!-- Our sample consists of 1,443 deaf or hard-of-hearing men, 172,048 men without a hearing disability, 728 deaf or hard-of-hearing women, and 134,877 women without a hearing disability. -->
+=======
++ This survey contains 30224 observations, and 284 variables
++ Select only a few of varibles to perform an EDA
+
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 
 ```{r}
@@ -100,6 +114,7 @@ ss16ppr <- ss16ppr %>% filter(between(COW, 1, 7))
 ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
 ```
 
+<<<<<<< HEAD
 ## Task 1: 
 
 Examine the first 10 or 20 observations (rows of data) corresponding to variables of interest (columns) and compare the observed values to the data dictionary for person records.
@@ -164,6 +179,15 @@ kable(whole) %>%
 
 ### Race
 
+=======
+We were asked to perform an exploratory data analysis (EDA) based on American Community Survey, and our research questions are: 1. In Puerto Rico, how does earnings vary by educational attainment? 2. How does earnigs vary by how well English is spoken? 
+
+Based on these two questions, we needed several attributes from the survey, which are ss16ppr$RT, ss16ppr$RAC1P, ss16ppr$RAC2P, ss16ppr$RAC3P, ss16ppr$ENG, ss16ppr$DREM, ss16ppr$SCHL. In detail, we looked into race diversity, marital status, ability to speak English, cognitive difficulty, educational attainment, and gender in Puerto Rico.
+
+
+## Recoded detailed race code
+ 
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 ```{r}
 #code to decode RAC1P
 ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
@@ -183,7 +207,12 @@ kable(ss16ppr %>%  group_by(RAC1P) %>% summarise(Count = n())  %>% arrange(desc(
   kable_styling(bootstrap_options = "striped")
 ```
 
+<<<<<<< HEAD
 ### Ethicity: Hispanic
+=======
++ In Puerto Rico, majority of people identify themselves as white.
+
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", "Yes", "No"))
@@ -199,7 +228,15 @@ kable(ss16ppr %>% group_by(RACWHT) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+<<<<<<< HEAD
 ### Race: Black
+=======
++ Most of people are white
++ Minority races include American Indian, American Indian and Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated
+
+
+## Marital status
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
@@ -253,7 +290,12 @@ kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+<<<<<<< HEAD
 # Educational attainment
+=======
++ About half of population do not speak English well
+
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 #Note: 16 .Regular high school diploma
@@ -288,11 +330,16 @@ kable(ss16ppr %>%  group_by(SEX) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+<<<<<<< HEAD
 ## Task 3:
 
 Generate and examine histograms for quantitative variables of interest
 
 ### Wage
+=======
++ Majority of people (approximately 88%) do not have cognitive difficulty
+
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 ggplot(ss16ppr,  aes(WAGP)) +
@@ -301,8 +348,14 @@ ggplot(ss16ppr,  aes(WAGP)) +
   theme(axis.text.x = element_text(vjust = 1, 
                                    size = 12, hjust = 1))
 ```
+<<<<<<< HEAD
 
 ### Age
+=======
+ 
+## Educational attainment
+Note: 16 .Regular high school diploma
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 ggplot(ss16ppr,  aes(AGEP)) +
@@ -334,7 +387,16 @@ ggplot(ss16ppr,  aes(RAC1P)) +
                                    size = 12, hjust = 1))
 ```
 
+<<<<<<< HEAD
 ### White
+=======
++ We will category people in four education level
+    + People in sec 0 - 15 don't have diploma and are considered as no education 
+    + People in sec 16 - 17 have high school education  
+    + People in sec 18 - 21 have college education
+    + People in sec 22 - 24 have after bachelor's education  
+
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 ggplot(ss16ppr,  aes(RACWHT)) +
@@ -390,7 +452,12 @@ ggplot(ss16ppr,  aes(ENG)) +
   theme_minimal()  
 ```
 
+<<<<<<< HEAD
 ## Educational attainment
+=======
++ Gender is nearly equalized in Puerto Rico
+
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
 
 ```{r}
 ggplot(ss16ppr,  aes(SCHL)) +
@@ -400,6 +467,7 @@ ggplot(ss16ppr,  aes(SCHL)) +
                                    size = 12, hjust = 1))
 ```
 
+<<<<<<< HEAD
 ## Sex 
 
 ```{r}
@@ -442,3 +510,5 @@ cor(ss16ppr$WAGP, ss16ppr$WKHP)
 ```
 
 TODO: Describe the correlation
+=======
+>>>>>>> 00cf9a0aa9de6f250e5900dd3cfb0b5c04f6984a
