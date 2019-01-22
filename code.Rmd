@@ -4,8 +4,8 @@ author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
   html_document: default
-  word_document: default
   pdf_document: default
+  word_document: default
 ---
 
 ```{r, echo=FALSE}
@@ -221,10 +221,6 @@ kable(whole) %>%
 ```
 
 
-<!-- We were asked to perform an exploratory data analysis (EDA) based on American Community Survey, and our research questions are: 1. In Puerto Rico, how does earnings vary by educational attainment? 2. How does earnigs vary by how well English is spoken?  -->
-
-<!-- Based on these two questions, we needed several attributes from the survey, which are ss16ppr$RT, ss16ppr$RAC1P, ss16ppr$RAC2P, ss16ppr$RAC3P, ss16ppr$ENG, ss16ppr$DREM, ss16ppr$SCHL. In detail, we looked into race diversity, marital status, ability to speak English, cognitive difficulty, educational attainment, and gender in Puerto Rico. -->
-
 
 ### Ethicity: Hispanic
 
@@ -235,7 +231,7 @@ kable(ss16ppr %>% group_by(RACHISP) %>% summarise(Count = n())) %>%
 
 ### Race: White
 
-In Puerto Rico, majority of people identify themselves as white.  Minority races include American Indian, American Indian and Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated
+
 
 ```{r}
 kable(ss16ppr %>% group_by(RACWHT) %>% summarise(Count = n())) %>%
@@ -270,11 +266,11 @@ kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
 
 TODO: Please update.  This is not the case
 
-+ We will category people in four education level
-    + People in sec 0 - 15 don't have diploma and are considered as no education 
-    + People in sec 16 - 17 have high school education  
-    + People in sec 18 - 21 have college education
-    + People in sec 22 - 24 have after bachelor's education  
++ We will category people in seven education levels
+    + Eliminated people who do not have education (before high school)
+    + Combined regualr high school diploma and GED or alternative credential as High school education
+    + Categorized each higher education level
+
     
 ```{r}
 kable(ss16ppr %>%  group_by(SCHL) %>% summarise(Count = n())) %>%
