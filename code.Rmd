@@ -1,6 +1,9 @@
 ---
-title: "EDA"
+title: "Labor Market Analysis"
+author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
+subtitle: Exploratory Data Analysis
 output:
+  word_document: default
   html_document: default
   pdf_document: default
 ---
@@ -13,16 +16,28 @@ library(ggplot2)
 library(mosaic)
 library(dplyr)
 library(kableExtra)
+library(qwraps2)
+#options(qwraps2_markup = "markdown")
+
 ```
 
 ## Research Questions and Geographic area 
 
 ## Data
 
+<!-- https://cran.r-project.org/web/packages/qwraps2/vignettes/summary-statistics.html -->
+
 ```{r}
 ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 #kable(ss16ppr)
 ```
+
+We use data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals who are TBD. The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics, and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
+
+We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and selfemployment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hr per week in a usual work week over this period. 
+
+<!-- Our sample consists of 1,443 deaf or hard-of-hearing men, 172,048 men without a hearing disability, 728 deaf or hard-of-hearing women, and 134,877 women without a hearing disability. -->
+
 
 ```{r}
 # add column labels
@@ -34,29 +49,38 @@ attr(ss16ppr$SCHL, "label") <- "Educational attainment"
 
 ```{r}
 #select columns of interest
-ss16ppr <- ss16ppr %>% select(WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, RACASN, HISP, MAR, SCHL, ENG, COW, WKW)
+ss16ppr <- ss16ppr %>% select(WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, RACASN, HISP, MAR, SCHL, ENG, COW, WKW, WKHP)
 ```
 
 ## Sample selection criteria
 
 ```{r}
+ss16ppr$WKHP <- as.numeric(ss16ppr$WKHP)
+ss16ppr$WAGP <- as.numeric(ss16ppr$WAGP)
+ss16ppr$AGEP <- as.numeric(ss16ppr$AGEP)
+
+
 #Filters
 # AGE: Only between 18 and 64 (inclusive) years of age
+ss16ppr <- ss16ppr %>% filter(AGEP >= 18, AGEP <= 64)
+
 # SCHL: High school and above
 #       Combine: 16/17 for High school and 18/19 for Some college
-# WKW: Only between 50 and 40 hours
-ss16ppr <- ss16ppr %>% filter(AGEP >= 18, AGEP <= 64) %>% filter(SCHL >= 16) %>% mutate(SCHL = ifelse(SCHL == 17, 16, SCHL)) %>% mutate(SCHL = ifelse(SCHL == 19, 18, SCHL))
+ss16ppr <- ss16ppr %>% filter(SCHL >= 16) %>% mutate(SCHL = ifelse(SCHL == 17, 16, SCHL)) %>% mutate(SCHL = ifelse(SCHL == 19, 18, SCHL))
 
+# WKW: Only between 50 and 40 hours
 # 1 .50 to 52 weeks worked during past 12 months
 # 2 .48 to 49 weeks worked during past 12 months
 # 3 .40 to 47 weeks worked during past 12 months
 ss16ppr <- ss16ppr %>% filter(between(WKW, 1,3))
 
-# Remove NAs in WAGP
+# Remove NAs and zero in WAGP
 ss16ppr <- ss16ppr %>% filter(!is.na(WAGP))
+ss16ppr <- ss16ppr %>% filter(WAGP != 0) 
+# Remove outlier
+ss16ppr <-ss16ppr %>% filter(WAGP != max(ss16ppr$WAGP))
 
-ss16ppr <- ss16ppr %>% filter(between(COW, 1,7))
-
+# Restirct class of worker to exclude those working without pay and unemployed
 # Class of worker
 # b N/A (less than 16 years old/NILF who last worked more than 5 years ago or never worked)
 # 1 Employee of a private for-profit company or business, or of an individual, for wages,
@@ -69,6 +93,11 @@ ss16ppr <- ss16ppr %>% filter(between(COW, 1,7))
 # 7 Self-employed in own incorporated business, professional practice or farm
 # 8 Working without pay in family business or farm
 # 9 Unemployed and last worked 5 years ago or earlier or never worked
+ss16ppr <- ss16ppr %>% filter(between(COW, 1, 7))
+
+
+# WKHP: worked at least 35 hr per week in a usual work week over this period. 
+ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
 ```
 
 ## Task 1: 
@@ -76,7 +105,8 @@ ss16ppr <- ss16ppr %>% filter(between(COW, 1,7))
 Examine the first 10 or 20 observations (rows of data) corresponding to variables of interest (columns) and compare the observed values to the data dictionary for person records.
 
 ```{r}
-kable(head(ss16ppr))
+kable(head(ss16ppr, 20)) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ## Task 2:
@@ -87,7 +117,49 @@ Compute and examine descriptive statistics including the minimum, maximum, mean,
 
 ```{r}
 ss16ppr$WAGP <- as.numeric(ss16ppr$WAGP)
-summary(ss16ppr$WAGP)
+summary1 <-
+  list("Wages or salary income past 12 months" =
+       list("Minimum" = ~ min(.data$WAGP),
+            "Maximum" = ~ max(.data$WAGP),
+            "Median" = ~ median(.data$WAGP),
+            "mean (sd)" = ~ qwraps2::mean_sd(.data$WAGP))
+       )
+### Overall
+whole <- summary_table(ss16ppr, summary1)
+kable(whole) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Age
+
+```{r}
+summary2 <-
+  list("Age" =
+       list("Minimum" = ~ min(.data$AGEP),
+            "Maximum" = ~ max(.data$AGEP),
+            "Median" = ~ median(.data$AGEP),
+            "mean (sd)" = ~ qwraps2::mean_sd(.data$AGEP))
+       )
+### Overall
+whole <- summary_table(ss16ppr, summary2)
+kable(whole) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Hours worked 
+
+```{r}
+summary3 <-
+  list("Usual hours worked per week past 12 months" =
+       list("Minimum" = ~ min(.data$WKHP),
+            "Maximum" = ~ max(.data$WKHP),
+            "Median" = ~ median(.data$WKHP),
+            "mean (sd)" = ~ qwraps2::mean_sd(.data$WKHP))
+       )
+### Overall
+whole <- summary_table(ss16ppr, summary3)
+kable(whole) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ### Race
@@ -107,33 +179,48 @@ ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-ss16ppr %>%  group_by(RAC1P) %>% summarise(Count = n())  %>% arrange(desc(Count))
+kable(ss16ppr %>%  group_by(RAC1P) %>% summarise(Count = n())  %>% arrange(desc(Count))) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
-### Hispanic
+### Ethicity: Hispanic
 
 ```{r}
-ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", 1, 0))
-summary(ss16ppr$RACHISP)
+ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", "Yes", "No"))
+kable(ss16ppr %>% group_by(RACHISP) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
-### White
+### Race: White
 
 ```{r}
-summary(ss16ppr$RACWHT)
+ss16ppr  <- ss16ppr %>% mutate(RACWHT = ifelse(RACWHT == 1, "Yes", "No"))
+kable(ss16ppr %>% group_by(RACWHT) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
-### Black
+### Race: Black
 
 ```{r}
-summary(ss16ppr$RACBLK)
+ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
+kable(ss16ppr %>% group_by(RACBLK) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Race: Asian
+
+```{r}
+ss16ppr  <- ss16ppr %>% mutate(RACASN = ifelse(RACASN == 1, "Yes", "No"))
+kable(ss16ppr %>% group_by(RACASN) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ### Marital status
 
 ```{r}
-ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, 1, 0))
-ss16ppr %>%  group_by(MAR1) %>% summarise(n()) 
+ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, "Yes", "No"))
+kable(ss16ppr %>% group_by(MAR1) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 
 #code to decode MAR
 ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
@@ -145,8 +232,8 @@ ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-ss16ppr %>%  group_by(MAR) %>% summarise(n()) 
-summary(ss16ppr$MAR)
+kable(ss16ppr %>%  group_by(MAR) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped") 
 ```
 
 ## Ability to speak English
@@ -162,8 +249,8 @@ ss16ppr <- mutate(ss16ppr, ENG = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-ss16ppr %>%  group_by(ENG) %>% summarise(n()) 
-summary(ss16ppr$ENG)
+kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 # Educational attainment
@@ -183,8 +270,8 @@ ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-
-ss16ppr %>%  group_by(SCHL) %>% summarise(n()) 
+kable(ss16ppr %>%  group_by(SCHL) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ## Sex 
@@ -197,7 +284,8 @@ ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-ss16ppr %>%  group_by(SEX) %>% summarise(n()) 
+kable(ss16ppr %>%  group_by(SEX) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ## Task 3:
@@ -209,7 +297,7 @@ Generate and examine histograms for quantitative variables of interest
 ```{r}
 ggplot(ss16ppr,  aes(WAGP)) +
   geom_histogram(bins = 15)  +
-  theme_minimal() + # minimal theme
+  theme_minimal() + 
   theme(axis.text.x = element_text(vjust = 1, 
                                    size = 12, hjust = 1))
 ```
@@ -219,9 +307,17 @@ ggplot(ss16ppr,  aes(WAGP)) +
 ```{r}
 ggplot(ss16ppr,  aes(AGEP)) +
   geom_histogram(stat="count")  +
-  theme_minimal() + # minimal theme
+  theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1))
+```
+
+### Hours worked
+
+```{r}
+ggplot(ss16ppr,  aes(WKHP)) +
+  geom_histogram(stat="count")  +
+  theme_minimal() 
 ```
 
 ## Task 4:
@@ -233,7 +329,7 @@ Generate and examine bar charts/graphs for qualitative variables of interest
 ```{r}
 ggplot(ss16ppr,  aes(RAC1P)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
+  theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
@@ -241,41 +337,33 @@ ggplot(ss16ppr,  aes(RAC1P)) +
 ### White
 
 ```{r}
-ggplot(ss16ppr,  aes(factor(RACWHT))) +
+ggplot(ss16ppr,  aes(RACWHT)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme_minimal()
 ```
 
 ### Black
 
 ```{r}
-ggplot(ss16ppr,  aes(factor(RACBLK))) +
+ggplot(ss16ppr,  aes(RACBLK)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme_minimal()
 ```
 
 ### Asian
 
 ```{r}
-ggplot(ss16ppr,  aes(factor(RACASN))) +
+ggplot(ss16ppr,  aes(RACASN)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme_minimal()
 ```
 
 ### Hispanic
 
 ```{r}
-ggplot(ss16ppr,  aes(factor(RACHISP))) +
+ggplot(ss16ppr,  aes(RACHISP)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme_minimal()
 ```
 
 ### Marital Status
@@ -283,15 +371,15 @@ ggplot(ss16ppr,  aes(factor(RACHISP))) +
 ```{r}
 ggplot(ss16ppr,  aes(MAR)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
+  theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
 
 ```{r}
-ggplot(ss16ppr,  aes(factor(MAR1))) +
+ggplot(ss16ppr,  aes(MAR1)) +
   geom_bar()  +
-  theme_minimal()  # minimal theme
+  theme_minimal()  
 ```
 
 ## Ability to speak English
@@ -299,7 +387,7 @@ ggplot(ss16ppr,  aes(factor(MAR1))) +
 ```{r}
 ggplot(ss16ppr,  aes(ENG)) +
   geom_bar()  +
-  theme_minimal()  # minimal theme
+  theme_minimal()  
 ```
 
 ## Educational attainment
@@ -307,22 +395,50 @@ ggplot(ss16ppr,  aes(ENG)) +
 ```{r}
 ggplot(ss16ppr,  aes(SCHL)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
+  theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
+
 ## Sex 
 
 ```{r}
 ggplot(ss16ppr,  aes(SEX)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme_minimal()
+```
+
+### Work week
+
+```{r}
+ggplot(ss16ppr,  aes(WKW)) +
+  geom_histogram(stat="count")  +
+  theme_minimal()
 ```
 
 Task 4:
 
 Generate and examine cross tabulations, scatterplots, and/or correlation coefficients of interest
 
+```{r}
+ss16ppr <- filter(ss16ppr, WAGP != max(ss16ppr$WAGP))
+ggplot(ss16ppr,  aes(AGEP, WAGP)) +
+  geom_point() 
+```
 
+```{r}
+cor(ss16ppr$WAGP, ss16ppr$AGEP)
+```
+
+TODO: Describe the correlation
+
+```{r}
+ggplot(ss16ppr,  aes(WKHP, WAGP)) +
+  geom_point()  
+```
+
+```{r}
+cor(ss16ppr$WAGP, ss16ppr$WKHP)
+```
+
+TODO: Describe the correlation
