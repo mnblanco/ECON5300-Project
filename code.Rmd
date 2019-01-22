@@ -1,42 +1,97 @@
 ---
-title: "Prelim EDa"
+title: "EDA"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(readr)
 library(ggplot2)
 library(mosaic)
-
+library(dplyr)
+library(kableExtra)
 ```
+
+## Research Questions and Geographic area 
+
+## Data
 
 ```{r}
 ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
+#kable(ss16ppr)
 ```
 
 ```{r}
+# add column labels
 attr(ss16ppr$RT, "label") <- "Record Type"
 attr(ss16ppr$RAC1P, "label") <- "Recoded detailed race code"
-attr(ss16ppr$RAC2P, "label") <- "Recoded detailed race code"
-attr(ss16ppr$RAC3P, "label") <- "Recoded detailed race code"
 attr(ss16ppr$ENG, "label") <- "Ability to speak English"
-attr(ss16ppr$DREM, "label") <- "Cognitive difficulty"
 attr(ss16ppr$SCHL, "label") <- "Educational attainment"
-
-
-
-
-ss16ppr$RAC1P <- as.factor(ss16ppr$RAC1P)
-ss16ppr$RAC2P <- as.factor(ss16ppr$RAC2P)
-ss16ppr$RAC3P <- as.factor(ss16ppr$RAC3P)
-ss16ppr$SCHL <- as.factor(ss16ppr$SCHL)
 ```
 
-## Recoded detailed race code
- 
+```{r}
+#select columns of interest
+ss16ppr <- ss16ppr %>% select(WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, RACASN, HISP, MAR, SCHL, ENG, COW, WKW)
+```
+
+## Sample selection criteria
+
+```{r}
+#Filters
+# AGE: Only between 18 and 64 (inclusive) years of age
+# SCHL: High school and above
+#       Combine: 16/17 for High school and 18/19 for Some college
+# WKW: Only between 50 and 40 hours
+ss16ppr <- ss16ppr %>% filter(AGEP >= 18, AGEP <= 64) %>% filter(SCHL >= 16) %>% mutate(SCHL = ifelse(SCHL == 17, 16, SCHL)) %>% mutate(SCHL = ifelse(SCHL == 19, 18, SCHL))
+
+# 1 .50 to 52 weeks worked during past 12 months
+# 2 .48 to 49 weeks worked during past 12 months
+# 3 .40 to 47 weeks worked during past 12 months
+ss16ppr <- ss16ppr %>% filter(between(WKW, 1,3))
+
+# Remove NAs in WAGP
+ss16ppr <- ss16ppr %>% filter(!is.na(WAGP))
+
+ss16ppr <- ss16ppr %>% filter(between(COW, 1,7))
+
+# Class of worker
+# b N/A (less than 16 years old/NILF who last worked more than 5 years ago or never worked)
+# 1 Employee of a private for-profit company or business, or of an individual, for wages,
+#    salary, or commissions
+# 2 Employee of a private not-for-profit, tax-exempt, or charitable organization
+# 3 Local government employee (city, county, etc.)
+# 4 State government employee
+# 5 Federal government employee
+# 6 Self-employed in own not incorporated business, professional practice, or farm
+# 7 Self-employed in own incorporated business, professional practice or farm
+# 8 Working without pay in family business or farm
+# 9 Unemployed and last worked 5 years ago or earlier or never worked
+```
+
+## Task 1: 
+
+Examine the first 10 or 20 observations (rows of data) corresponding to variables of interest (columns) and compare the observed values to the data dictionary for person records.
+
+```{r}
+kable(head(ss16ppr))
+```
+
+## Task 2:
+
+Compute and examine descriptive statistics including the minimum, maximum, mean, and median for quantitative variables of interest
+
+### Wage
+
+```{r}
+ss16ppr$WAGP <- as.numeric(ss16ppr$WAGP)
+summary(ss16ppr$WAGP)
+```
+
+### Race
+
 ```{r}
 #code to decode RAC1P
 ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
@@ -52,8 +107,128 @@ ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-ss16ppr %>%  group_by(RAC1P) %>% summarise(n()) 
+ss16ppr %>%  group_by(RAC1P) %>% summarise(Count = n())  %>% arrange(desc(Count))
 ```
+
+### Hispanic
+
+```{r}
+ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", 1, 0))
+summary(ss16ppr$RACHISP)
+```
+
+### White
+
+```{r}
+summary(ss16ppr$RACWHT)
+```
+
+### Black
+
+```{r}
+summary(ss16ppr$RACBLK)
+```
+
+### Marital status
+
+```{r}
+ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, 1, 0))
+ss16ppr %>%  group_by(MAR1) %>% summarise(n()) 
+
+#code to decode MAR
+ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
+  "Married" = MAR == 1,
+  "Widowed" = MAR == 2,
+  "Divorced" = MAR == 3,
+  "Separated" = MAR == 4,
+  "Never married" = MAR == 5,
+  method ="first",
+  .default = "NA"
+))
+ss16ppr %>%  group_by(MAR) %>% summarise(n()) 
+summary(ss16ppr$MAR)
+```
+
+## Ability to speak English
+
+```{r}
+#code to decode ENG
+ss16ppr <- mutate(ss16ppr, ENG = derivedFactor(
+  "NA" = (ENG == "1" | is.na(ENG)),
+  "Very well" = ENG == "2",
+  "Well" = ENG == "3",
+  "Not well" = ENG == "4",
+  "Not at all" = ENG == "5",
+  method ="first",
+  .default = "NA"
+))
+ss16ppr %>%  group_by(ENG) %>% summarise(n()) 
+summary(ss16ppr$ENG)
+```
+
+# Educational attainment
+
+```{r}
+#Note: 16 .Regular high school diploma
+
+#code to decode SCHL
+ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
+  "High school diploma" = SCHL == "16",
+  "Some college" = SCHL == "18",
+  "Associate's degree" = SCHL == "20",
+  "Bachelor's degree" = SCHL == "21",
+  "Master's degree" = SCHL == "22",
+  "Professional degree" = SCHL == "23",
+  "Doctorate degree" = SCHL == "24",
+  method ="first",
+  .default = "NA"
+))
+
+ss16ppr %>%  group_by(SCHL) %>% summarise(n()) 
+```
+
+## Sex 
+
+```{r}
+#code to decode SEX
+ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
+  "Male" = SEX == 1,
+  "Female" = SEX == 2,
+  method ="first",
+  .default = "NA"
+))
+ss16ppr %>%  group_by(SEX) %>% summarise(n()) 
+```
+
+## Task 3:
+
+Generate and examine histograms for quantitative variables of interest
+
+### Wage
+
+```{r}
+ggplot(ss16ppr,  aes(WAGP)) +
+  geom_histogram(bins = 15)  +
+  theme_minimal() + # minimal theme
+  theme(axis.text.x = element_text(vjust = 1, 
+                                   size = 12, hjust = 1))
+```
+
+### Age
+
+```{r}
+ggplot(ss16ppr,  aes(AGEP)) +
+  geom_histogram(stat="count")  +
+  theme_minimal() + # minimal theme
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1))
+```
+
+## Task 4:
+
+Generate and examine bar charts/graphs for qualitative variables of interest
+
+### Race
 
 ```{r}
 ggplot(ss16ppr,  aes(RAC1P)) +
@@ -63,21 +238,47 @@ ggplot(ss16ppr,  aes(RAC1P)) +
                                    size = 12, hjust = 1))
 ```
 
-## Marital status
+### White
 
 ```{r}
-#code to decode MAR
-ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
-  "Married" = MAR == 1,
-  "Widowed" = MAR == 2,
-  "Divorced" = MAR == 3,
-  "Separated" = MAR == 4,
-  "Never married or under 15 years old" = MAR == 5,
-  method ="first",
-  .default = "NA"
-))
-ss16ppr %>%  group_by(MAR) %>% summarise(n()) 
+ggplot(ss16ppr,  aes(factor(RACWHT))) +
+  geom_bar()  +
+  theme_minimal() + # minimal theme
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))
 ```
+
+### Black
+
+```{r}
+ggplot(ss16ppr,  aes(factor(RACBLK))) +
+  geom_bar()  +
+  theme_minimal() + # minimal theme
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))
+```
+
+### Asian
+
+```{r}
+ggplot(ss16ppr,  aes(factor(RACASN))) +
+  geom_bar()  +
+  theme_minimal() + # minimal theme
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))
+```
+
+### Hispanic
+
+```{r}
+ggplot(ss16ppr,  aes(factor(RACHISP))) +
+  geom_bar()  +
+  theme_minimal() + # minimal theme
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))
+```
+
+### Marital Status
 
 ```{r}
 ggplot(ss16ppr,  aes(MAR)) +
@@ -87,53 +288,21 @@ ggplot(ss16ppr,  aes(MAR)) +
                                    size = 12, hjust = 1))
 ```
 
-## Ability to speak English
-
 ```{r}
-#code to decode ENG
-ss16ppr <- mutate(ss16ppr, ENG = derivedFactor(
-  "NA" = (ENG == "1" | is.nan(ENG)),
-  "Very well" = ENG == "2",
-  "Well" = ENG == "3",
-  "Not well" = ENG == "4",
-  "Not at all" = ENG == "5",
-  method ="first",
-  .default = "NA"
-))
-ss16ppr %>%  group_by(ENG) %>% summarise(n()) 
+ggplot(ss16ppr,  aes(factor(MAR1))) +
+  geom_bar()  +
+  theme_minimal()  # minimal theme
 ```
+
+## Ability to speak English
 
 ```{r}
 ggplot(ss16ppr,  aes(ENG)) +
   geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
-```
-
-## Cognitive difficulty 
-
-```{r}
-#code to decode DREM
-ss16ppr <- mutate(ss16ppr, DREM = derivedFactor(
-  "Very well" = DREM == "1",
-  "Well" = DREM == "2",
-  method ="first",
-  .default = "NA"
-))
-ss16ppr %>%  group_by(DREM) %>% summarise(n()) 
-```
-
-```{r}
-ggplot(ss16ppr,  aes(DREM)) +
-  geom_bar()  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme_minimal()  # minimal theme
 ```
 
 ## Educational attainment
-Note: 16 .Regular high school diploma
 
 ```{r}
 ggplot(ss16ppr,  aes(SCHL)) +
@@ -142,32 +311,18 @@ ggplot(ss16ppr,  aes(SCHL)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
 ```
-
-```{r}
-ggplot(ss16ppr,  aes(AGEP)) +
-  geom_histogram(stat="count")  +
-  theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
-```
-
 ## Sex 
-
-```{r}
-#code to decode SEX
-ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
-  "Male" = SEX == "1",
-  "Female" = SEX == "2",
-  method ="first",
-  .default = "NA"
-))
-ss16ppr %>%  group_by(SEX) %>% summarise(n()) 
-```
 
 ```{r}
 ggplot(ss16ppr,  aes(SEX)) +
   geom_bar()  +
   theme_minimal() + # minimal theme
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+  theme(axis.text.x = element_text(vjust = 1, 
                                    size = 12, hjust = 1))
 ```
+
+Task 4:
+
+Generate and examine cross tabulations, scatterplots, and/or correlation coefficients of interest
+
+
