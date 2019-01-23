@@ -175,6 +175,19 @@ ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
   method ="first",
   .default = "NA"
 ))
+
+# 1 .50 to 52 weeks worked during past 12 months
+# 2 .48 to 49 weeks worked during past 12 months
+# 3 .40 to 47 weeks worked during past 12 months
+
+#code to decode WKW
+ss16ppr <- mutate(ss16ppr, WKW = derivedFactor(
+  "50 to 52" = WKW == 1,
+  "48 to 49" = WKW == 2,
+  "40 to 47" = WKW == 3,
+  method ="first",
+  .default = "NA"
+))
 ```
 
 ## EDA Insights: 
@@ -506,12 +519,13 @@ ggplot(ss16ppr,  aes(SEX, WAGP)) +
 
 ```{r}
 ggplot(ss16ppr,  aes(WKW)) +
-  geom_histogram(stat="count")  +
+  geom_bar()  +
   theme_minimal()
 
 ggplot(ss16ppr,  aes(WKW, WAGP)) +
   geom_boxplot() +
-  theme_minimal()
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 Task 5:
