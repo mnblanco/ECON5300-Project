@@ -37,9 +37,12 @@ ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 #kable(ss16ppr)
 ```
 
-We use data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals who are TBD. The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics, and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
+We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
+1) How do earnings vary by education level?
+2) How does the premium for education vary by gender?
+The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
 
-We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and selfemployment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hr per week in a usual work week over this period. 
+We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
 
 <!-- Our sample consists of 1,443 deaf or hard-of-hearing men, 172,048 men without a hearing disability, 728 deaf or hard-of-hearing women, and 134,877 women without a hearing disability. -->
 
@@ -58,6 +61,21 @@ ss16ppr <- ss16ppr %>% select(WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR,
 ```
 
 ## Sample selection criteria
+
++ Restricted age between 18 to 64 years old. The reason is that we only need to investage people at working age.
++ Categorized people in seven education levels
+    + Eliminated people who do not have education (before high school)
+    + HS diploma or equivalent
+    + Some college
+    + Associate's degree
+    + Bachelor's degree
+    + Professional degree
+    + Doctorate degree
++ Removed NAs and zero in wage segment
+    + Removed outliers
++ Restricted class of worker to exclude those working without pay and unemployed
++ Selected peoplewho worked at least 35 hours/week
+
 
 ```{r}
 ss16ppr$WKHP <- as.numeric(ss16ppr$WKHP)
@@ -192,7 +210,7 @@ summary2 <-
        list("Minimum" = ~ min(.data$AGEP),
             "Maximum" = ~ max(.data$AGEP),
             "Median" = ~ median(.data$AGEP),
-             "Mean" = ~ mean(.data$WAGP))
+             "Mean" = ~ mean(.data$AGEP))
             # "Mean" = ~ mean(.data$WAGP),
             # "Mean (sd)" = ~ qwraps2::mean_sd(.data$AGEP))
        )
@@ -264,13 +282,6 @@ kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
 
 # Educational attainment
 
-TODO: Please update.  This is not the case
-
-+ We will category people in seven education levels
-    + Eliminated people who do not have education (before high school)
-    + Combined regualr high school diploma and GED or alternative credential as High school education
-    + Categorized each higher education level
-
     
 ```{r}
 kable(ss16ppr %>%  group_by(SCHL) %>% summarise(Count = n())) %>%
@@ -297,6 +308,12 @@ Generate and examine histograms for quantitative variables of interest
 
 ### Wage
 
++ Right skewed wage histogram
+    + Only a few have high wage on right end;
+    + Median wage is around $24,000;
+    + Average is around 28,000, a little bit higher than median.
+    
+
 ```{r}
 ggplot(ss16ppr,  aes(WAGP)) +
   geom_histogram(bins = 15)  +
@@ -306,7 +323,10 @@ ggplot(ss16ppr,  aes(WAGP)) +
 ```
 
 ### Age
- 
+
++ Bell shape alike for age histogram 
+  + median and mean are close (around 43 years old)
+
 ```{r}
 ggplot(ss16ppr,  aes(AGEP)) +
   geom_histogram(stat="count")  +
@@ -316,6 +336,8 @@ ggplot(ss16ppr,  aes(AGEP)) +
 ```
 
 ### Hours worked
+
++ 40 hr per week is the standard weekly working hour in Puerto Rico
 
 ```{r}
 ggplot(ss16ppr,  aes(WKHP)) +
@@ -377,7 +399,7 @@ ggplot(ss16ppr,  aes(MAR1)) +
   theme_minimal()  
 ```
 
-## Ability to speak English
+### Ability to speak English
 
 About half of population does not speak English well
 
@@ -387,7 +409,7 @@ ggplot(ss16ppr,  aes(ENG)) +
   theme_minimal()  
 ```
 
-## Educational attainment
+### Educational attainment
 
 ```{r}
 ggplot(ss16ppr,  aes(SCHL)) +
@@ -397,7 +419,7 @@ ggplot(ss16ppr,  aes(SCHL)) +
                                    size = 12, hjust = 1))
 ```
 
-## Sex 
+### Sex 
 
 Gender is nearly equalized in Puerto Rico
 
@@ -415,10 +437,16 @@ ggplot(ss16ppr,  aes(WKW)) +
   theme_minimal()
 ```
 
-Task 5:
+##Task 5:
 
 Generate and examine cross tabulations, scatterplots, and/or correlation coefficients of interest
 
+### Correlation between age and wage
++ Correlation is 0.2348 
+    + Indicates there is a positive relaitonship between age and wage
+    + The relation is likely to be significant
+    
+    
 ```{r}
 ss16ppr <- filter(ss16ppr, WAGP != max(ss16ppr$WAGP))
 ggplot(ss16ppr,  aes(AGEP, WAGP)) +
@@ -431,6 +459,11 @@ cor(ss16ppr$WAGP, ss16ppr$AGEP)
 
 TODO: Describe the correlation
 
+### Correlation between work hour and wage
++ Correlation is 0.1829 
+    + Indicates there is a positive relaitonship between work hour and wage
+    + The relation is weaker than correlation between age and wage
+
 ```{r}
 ggplot(ss16ppr,  aes(WKHP, WAGP)) +
   geom_point()  
@@ -442,6 +475,12 @@ cor(ss16ppr$WAGP, ss16ppr$WKHP)
 
 TODO: Describe the correlation
 
+### Wage comparison by race
+
++ Hispanic people in Puerto Rico make less money then others in average
+    + $6000 less by median
+    + approximately $1500 less by mean
+
 ```{r}
 ### By RACHISP
 by_RACHISP <- summary_table(dplyr::group_by(ss16ppr, RACHISP), summary1)
@@ -449,6 +488,10 @@ kable(by_RACHISP) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+
++ White people in Puerto Rico make more money than others in average 
+    + $1250 more by median
+    + approximately $3000 more by mean
 ```{r}
 ### By RACWHT
 by_RACWHT <- summary_table(dplyr::group_by(ss16ppr, RACWHT), summary1)
