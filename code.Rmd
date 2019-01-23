@@ -46,10 +46,8 @@ ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
 1) How do earnings vary by education level?
 2) How does the premium for education vary by gender?
-<<<<<<< HEAD
-The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
 
-The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`. The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. 
+The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
 
 We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
 
