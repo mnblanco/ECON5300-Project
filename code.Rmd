@@ -3,8 +3,8 @@ title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
   word_document: default
 ---
 
@@ -40,7 +40,7 @@ ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
 1) How do earnings vary by education level?
 2) How does the premium for education vary by gender?
-The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`  households with a response rate of 97.6% (TBD). The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. Our analysis relies on data collected on individuals living in households but not on those living in group quarters.
+The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`. The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. 
 
 We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
 
@@ -153,6 +153,16 @@ ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
   .default = "NA"
 ))
 ```
+## EDA Insights: 
+
+For our exploratory analysis we looked at population breakdowns by education, age,  marital status, gender, race, earnings, and work hours. We applied filters on education (HS diploma or above), age (18-64), and work hours (>35/week). 
+
+An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The wage distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week.
+
+The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
+
+A scatterplot of age and earnings shows the highest earners work 40-60 hours per week. Also, a comparison of race and earnings shows little difference in median earnings based on race.
+
 
 ## Task 1: 
 
@@ -238,7 +248,7 @@ kable(ss16ppr %>% group_by(RACHISP) %>% summarise(Count = n())) %>%
 
 ### Race: White
 
-In Puerto Rico, majority of people identify themselves as white.  Minority races include American Indian, American Indian and Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated
+In Puerto Rico, the majority of people identify themselves as white.  Minority races including American Indian, Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated.
 
 ```{r}
 kable(ss16ppr %>% group_by(RACWHT) %>% summarise(Count = n())) %>%
@@ -436,7 +446,7 @@ ggplot(ss16ppr,  aes(AGEP, WAGP)) +
 cor(ss16ppr$WAGP, ss16ppr$AGEP)
 ```
 
-TODO: Describe the correlation
+The correlation of .23 for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
 
 ```{r}
 ggplot(ss16ppr,  aes(WKHP, WAGP)) +
@@ -447,7 +457,7 @@ ggplot(ss16ppr,  aes(WKHP, WAGP)) +
 cor(ss16ppr$WAGP, ss16ppr$WKHP)
 ```
 
-TODO: Describe the correlation
+The correlation of .18 for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
 
 ```{r}
 ### By RACHISP
