@@ -3,8 +3,8 @@ title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
   word_document: default
 ---
 
@@ -24,6 +24,7 @@ library(mosaic)
 library(dplyr)
 library(kableExtra)
 library(qwraps2)
+library("dplyr") 
 ```
 
 
@@ -38,7 +39,7 @@ fun_mean <- function(x){
 
 ```{r}
 ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
-#kable(ss16ppr)
+ss16ppr$ID <- seq.int(nrow(ss16ppr))
 ```
 
 We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
@@ -59,7 +60,7 @@ attr(ss16ppr$SCHL, "label") <- "Educational attainment"
 
 ```{r}
 #select columns of interest
-ss16ppr <- ss16ppr %>% select(WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR, SCHL, ENG, COW, WKW, WKHP)
+ss16ppr <- ss16ppr %>% select(ID, WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR, SCHL, ENG, COW, WKW, WKHP)
 ```
 
 <!-- Sample selection criteria -->
@@ -192,7 +193,7 @@ For our exploratory analysis we looked at population breakdowns by education, ag
 
 An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The wage distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.  Married was recategoried to married and not married.
 
-Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. Men also appear to earn a small premium over women.
+Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. It should be noted that, on the island, fluency in the English language is neither a requirement, nor really needed. As a Latin American destination, the predominant language spoken and used (e.g. street signs, day-to-day communications) is Spanish, with English only coming into use in the tourism industry, or in those industies or companies imported from the mainland. This may help to explain the wage difference, as those are likely to pay more than local businesses (note that tourism is the largest industry on the island and the source of most of the island's GDP). Men also appear to earn a small premium over women.
 
 The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
 
@@ -201,7 +202,10 @@ The age distribution of full time workers is skewed towards older adults, possib
 Examine the first 10 or 20 observations (rows of data) corresponding to variables of interest (columns) and compare the observed values to the data dictionary for person records.
 
 ```{r}
-kable(head(ss16ppr %>% select(-MAR1), 20)) %>%
+kable(head(ss16ppr %>% select(ID:MAR), 20)) %>%
+  kable_styling(bootstrap_options = "striped")
+
+kable(head(ss16ppr %>% select(ID, SCHL:WKHP), 20)) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
@@ -219,9 +223,6 @@ summary1 <-
               "Maximum" = ~ max(.data$WAGP),
               "Median" = ~ median(.data$WAGP),
               "Mean" = ~ mean(.data$WAGP))
-       
-       #            "Mean" = ~ mean(.data$WAGP),
-       #            "Mean (sd)" = ~ qwraps2::mean_sd(.data$WAGP))
   )
 ### Overall
 whole <- summary_table(ss16ppr, summary1)
@@ -238,8 +239,6 @@ summary2 <-
               "Maximum" = ~ max(.data$AGEP),
               "Median" = ~ median(.data$AGEP),
               "Mean" = ~ mean(.data$WAGP))
-       # "Mean" = ~ mean(.data$WAGP),
-       # "Mean (sd)" = ~ qwraps2::mean_sd(.data$AGEP))
   )
 ### Overall
 whole <- summary_table(ss16ppr, summary2)
@@ -255,9 +254,7 @@ summary3 <-
          list("Minimum" = ~ min(.data$WKHP),
               "Maximum" = ~ max(.data$WKHP),
               "Median" = ~ median(.data$WKHP),
-              "Mean" = ~ mean(.data$WKHP))            
-       # "Mean" = ~ mean(.data$WAGP),
-       # "Mean (sd)" = ~ qwraps2::mean_sd(.data$WKHP))
+              "Mean" = ~ mean(.data$WKHP))
   )
 ### Overall
 whole <- summary_table(ss16ppr, summary3)
@@ -274,7 +271,7 @@ kable(ss16ppr %>% group_by(RACHISP) %>% summarise(Count = n())) %>%
 
 ### Race: White
 
-In Puerto Rico, the majority of people identify themselves as white.  Minority races including American Indian, Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated.
+In Puerto Rico, the majority of people identify themselves as white, though this should be interpreted as skin color (i.e. not Caucasian), rather than ethnicity, as the terminology is used in the mainland US as in the mainland, all Puerto Ricans would be identified as Latin regardless of skin color.  Minority races including American Indian, Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated.
 
 ```{r}
 kable(ss16ppr %>% group_by(RACWHT) %>% summarise(Count = n())) %>%
@@ -308,7 +305,7 @@ kable(ss16ppr %>% group_by(MAR1) %>% summarise(Count = n())) %>%
 ## Ability to speak English
 
 ```{r}
-kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
+kable(ss16ppr %>%  group_by(ENG) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
@@ -368,8 +365,6 @@ ggplot(ss16ppr,  aes(WAGP)) +
 ggplot(ss16ppr,  aes(AGEP)) +
   geom_histogram(stat="count")  +
   theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
-                                   size = 12, hjust = 1)) +
   xlab("")
 ```
 
@@ -399,11 +394,13 @@ ggplot(ss16ppr,  aes(RAC1P)) +
 ggplot(ss16ppr,  aes(RAC1P, WAGP)) +
   geom_boxplot() +
   theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1)) +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
   xlab("")
 ```
 
-### White
+### Race: White
 
 ```{r}
 ggplot(ss16ppr,  aes(RACWHT)) +
@@ -418,12 +415,13 @@ ggplot(ss16ppr,  aes(RACWHT, WAGP)) +
   xlab("")
 ```
 
-### Black
+### Race: Black
 
 ```{r}
 ggplot(ss16ppr,  aes(RACBLK)) +
   geom_bar()  +
-  theme_minimal()
+  theme_minimal() +
+  xlab("")
 
 ggplot(ss16ppr,  aes(RACBLK, WAGP)) +
   geom_boxplot() +
@@ -432,7 +430,21 @@ ggplot(ss16ppr,  aes(RACBLK, WAGP)) +
   xlab("")
 ```
 
-### Hispanic
+### Race: Other
+
+```{r}
+ggplot(ss16ppr,  aes(RACOTHER)) +
+  geom_bar()  +
+  theme_minimal()
+
+ggplot(ss16ppr,  aes(RACOTHER, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
+  xlab("")
+```
+
+### Ethnicity: Hispanic
 
 ```{r}
 ggplot(ss16ppr,  aes(RACHISP)) +
@@ -477,7 +489,7 @@ ggplot(ss16ppr,  aes(MAR1, WAGP)) +
   xlab("")
 ```
 
-## Ability to speak English
+### Ability to speak English
 
 About half of population does not speak English well
 
@@ -494,7 +506,7 @@ ggplot(ss16ppr,  aes(ENG, WAGP)) +
   xlab("")
 ```
 
-## Educational attainment
+### Educational attainment
 
 ```{r}
 ggplot(ss16ppr,  aes(SCHL)) +
@@ -513,7 +525,7 @@ ggplot(ss16ppr,  aes(SCHL, WAGP)) +
   xlab("")
 ```
 
-## Sex 
+### Sex 
 
 Gender is nearly equalized in Puerto Rico
 
@@ -549,6 +561,8 @@ Task 5:
 
 Generate and examine cross tabulations, scatterplots, and/or correlation coefficients of interest
 
+### Age vs. Wage 
+
 ```{r}
 ss16ppr <- filter(ss16ppr, WAGP != max(ss16ppr$WAGP))
 ggplot(ss16ppr,  aes(AGEP, WAGP)) +
@@ -556,11 +570,9 @@ ggplot(ss16ppr,  aes(AGEP, WAGP)) +
   xlab("")
 ```
 
-```{r}
-cor(ss16ppr$WAGP, ss16ppr$AGEP)
-```
-
 The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
+
+### Work hours vs. Wage 
 
 ```{r}
 ggplot(ss16ppr,  aes(WKHP, WAGP)) +
@@ -570,12 +582,16 @@ ggplot(ss16ppr,  aes(WKHP, WAGP)) +
 
 The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
 
+### Ethinicity: Hispanic
+
 ```{r}
 ### By RACHISP
 by_RACHISP <- summary_table(dplyr::group_by(ss16ppr, RACHISP), summary1)
 kable(by_RACHISP) %>%
   kable_styling(bootstrap_options = "striped")
 ```
+
+### Race: White
 
 ```{r}
 ### By RACWHT
@@ -584,9 +600,38 @@ kable(by_RACWHT) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+### Race: Black
+
 ```{r}
 ### By RACBLK
 by_RACBLK <- summary_table(dplyr::group_by(ss16ppr, RACBLK), summary1)
 kable(by_RACBLK) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Race: Other
+
+```{r}
+### By RACOTHER
+by_RACOTHER <- summary_table(dplyr::group_by(ss16ppr, RACOTHER), summary1)
+kable(by_RACOTHER) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Marital Status
+
+```{r}
+### By MAR1
+by_MAR <- summary_table(dplyr::group_by(ss16ppr, MAR1), summary1)
+kable(by_MAR) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Educational attainment
+
+```{r}
+### By SCHL
+by_SCHL <- summary_table(dplyr::group_by(ss16ppr, SCHL), summary1)
+kable(by_SCHL) %>%
   kable_styling(bootstrap_options = "striped")
 ```
