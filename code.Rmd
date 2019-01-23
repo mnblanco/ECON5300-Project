@@ -3,8 +3,8 @@ title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
   word_document: default
 ---
 
@@ -112,8 +112,10 @@ ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
 ```{r}
 # Decode variables of interest
 ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", "Yes", "No"))
+ss16ppr  <- ss16ppr %>% mutate(RACOTHER = ifelse(RACBLK == 1 | RACWHT == 1, "No", "Yes"))
 ss16ppr  <- ss16ppr %>% mutate(RACWHT = ifelse(RACWHT == 1, "Yes", "No"))
 ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
+
 ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, "Yes", "No"))
 
 #code to decode MAR
@@ -249,6 +251,13 @@ kable(ss16ppr %>% group_by(RACWHT) %>% summarise(Count = n())) %>%
 
 ```{r}
 kable(ss16ppr %>% group_by(RACBLK) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+### Race: Other
+
+```{r}
+kable(ss16ppr %>% group_by(RACOTHER) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
