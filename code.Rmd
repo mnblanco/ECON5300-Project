@@ -488,7 +488,6 @@ ggplot(ss16ppr,  aes(MAR1, WAGP)) +
 
 ### Ability to speak English
 
-About half of population does not speak English well
 
 ```{r}
 ggplot(ss16ppr,  aes(ENG)) +
@@ -520,7 +519,6 @@ ggplot(ss16ppr,  aes(SCHL, WAGP)) +
 
 ### Sex 
 
-Gender is nearly equalized in Puerto Rico
 
 ```{r}
 ggplot(ss16ppr,  aes(SEX)) +
@@ -551,10 +549,11 @@ ggplot(ss16ppr,  aes(WKW, WAGP)) +
 Generate and examine cross tabulations, scatterplots, and/or correlation coefficients of interest
 
 ### Correlation between age and wage
+
+The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
+
 + Correlation is 0.2348 
     + Indicates there is a positive relaitonship between age and wage
-    + The relation is likely to be significant
-    
     
 ```{r}
 ss16ppr <- filter(ss16ppr, WAGP != max(ss16ppr$WAGP))
@@ -566,19 +565,23 @@ ggplot(ss16ppr,  aes(AGEP, WAGP)) +
 cor(ss16ppr$WAGP, ss16ppr$AGEP)
 ```
 
-The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
+
 
 ### Correlation between work hour and wage
+
+The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
+
 + Correlation is 0.1829 
     + Indicates there is a positive relaitonship between work hour and wage
     + The relation is weaker than correlation between age and wage
+
 
 ```{r}
 ggplot(ss16ppr,  aes(WKHP, WAGP)) +
   geom_point()  
 ```
 
-The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
+
 
 ### Wage comparison by race
 
