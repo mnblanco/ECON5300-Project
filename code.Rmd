@@ -194,12 +194,11 @@ ss16ppr <- mutate(ss16ppr, WKW = derivedFactor(
 
 For our exploratory analysis we looked at population breakdowns by education, age,  marital status, gender, race, earnings, and work hours. We applied filters on education (HS diploma or above), age (18-64), and work hours (>35/week). 
 
-An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The wage distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week.
+An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The wage distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.
+
+Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. Men also appear to earn a small premium over women.
 
 The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
-
-A scatterplot of age and earnings shows the highest earners work 40-60 hours per week. Also, a comparison of race and earnings shows little difference in median earnings based on race.
-
 
 ## Task 1: 
 
