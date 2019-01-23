@@ -26,6 +26,12 @@ library(kableExtra)
 library(qwraps2)
 ```
 
+
+```{r}
+fun_mean <- function(x){
+  return(data.frame(y=mean(x),label=round(mean(x,na.rm=T), 2)))}
+```
+
 ## Research Questions and Geographic area 
 
 ## Data
@@ -118,6 +124,21 @@ ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
 
 ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, "Yes", "No"))
 
+#code to decode RAC1P
+ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
+  "White" = RAC1P == 1,
+  "Black or African American" = RAC1P == 2,
+  "American Indian" = RAC1P == 3,
+  "Alaska Native" = RAC1P == 4,
+  "American Indian and Alaska Native" = RAC1P == 5,
+  "Asian" = RAC1P == 6,
+  "Native Hawaiian and Other Pacific Islander" = RAC1P == 7,
+  "Some Other " = RAC1P == 8,
+  "Two or More Races" = RAC1P == 9,
+  method ="first",
+  .default = "NA"
+))
+
 #code to decode MAR
 ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
   "Married" = MAR == 1,
@@ -155,6 +176,7 @@ ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
   .default = "NA"
 ))
 ```
+
 ## EDA Insights: 
 
 For our exploratory analysis we looked at population breakdowns by education, age,  marital status, gender, race, earnings, and work hours. We applied filters on education (HS diploma or above), age (18-64), and work hours (>35/week). 
@@ -185,14 +207,14 @@ Compute and examine descriptive statistics including the minimum, maximum, mean,
 ss16ppr$WAGP <- as.numeric(ss16ppr$WAGP)
 summary1 <-
   list("Wages or salary income past 12 months" =
-       list("Minimum" = ~ min(.data$WAGP),
-            "Maximum" = ~ max(.data$WAGP),
-            "Median" = ~ median(.data$WAGP),
-            "Mean" = ~ mean(.data$WAGP))
-            
-#            "Mean" = ~ mean(.data$WAGP),
-#            "Mean (sd)" = ~ qwraps2::mean_sd(.data$WAGP))
-       )
+         list("Minimum" = ~ min(.data$WAGP),
+              "Maximum" = ~ max(.data$WAGP),
+              "Median" = ~ median(.data$WAGP),
+              "Mean" = ~ mean(.data$WAGP))
+       
+       #            "Mean" = ~ mean(.data$WAGP),
+       #            "Mean (sd)" = ~ qwraps2::mean_sd(.data$WAGP))
+  )
 ### Overall
 whole <- summary_table(ss16ppr, summary1)
 kable(whole) %>%
@@ -204,13 +226,13 @@ kable(whole) %>%
 ```{r}
 summary2 <-
   list("Age" =
-       list("Minimum" = ~ min(.data$AGEP),
-            "Maximum" = ~ max(.data$AGEP),
-            "Median" = ~ median(.data$AGEP),
-             "Mean" = ~ mean(.data$WAGP))
-            # "Mean" = ~ mean(.data$WAGP),
-            # "Mean (sd)" = ~ qwraps2::mean_sd(.data$AGEP))
-       )
+         list("Minimum" = ~ min(.data$AGEP),
+              "Maximum" = ~ max(.data$AGEP),
+              "Median" = ~ median(.data$AGEP),
+              "Mean" = ~ mean(.data$WAGP))
+       # "Mean" = ~ mean(.data$WAGP),
+       # "Mean (sd)" = ~ qwraps2::mean_sd(.data$AGEP))
+  )
 ### Overall
 whole <- summary_table(ss16ppr, summary2)
 kable(whole) %>%
@@ -222,13 +244,13 @@ kable(whole) %>%
 ```{r}
 summary3 <-
   list("Usual hours worked per week past 12 months" =
-       list("Minimum" = ~ min(.data$WKHP),
-            "Maximum" = ~ max(.data$WKHP),
-            "Median" = ~ median(.data$WKHP),
-            "Mean" = ~ mean(.data$WKHP))            
-            # "Mean" = ~ mean(.data$WAGP),
-            # "Mean (sd)" = ~ qwraps2::mean_sd(.data$WKHP))
-       )
+         list("Minimum" = ~ min(.data$WKHP),
+              "Maximum" = ~ max(.data$WKHP),
+              "Median" = ~ median(.data$WKHP),
+              "Mean" = ~ mean(.data$WKHP))            
+       # "Mean" = ~ mean(.data$WAGP),
+       # "Mean (sd)" = ~ qwraps2::mean_sd(.data$WKHP))
+  )
 ### Overall
 whole <- summary_table(ss16ppr, summary3)
 kable(whole) %>%
@@ -291,13 +313,13 @@ kable(ss16ppr %>%  group_by(ENG) %>% summarise(n())) %>%
 # Educational attainment
 
 + We will categorize people into seven education levels
-    + HS diploma or equivalent
-    + Some college
-    + Associate's degree
-    + Bachelor's degree
-    + Professional degree
-    + Doctorate degree
-    
++ HS diploma or equivalent
++ Some college
++ Associate's degree
++ Bachelor's degree
++ Professional degree
++ Doctorate degree
+
 ```{r}
 kable(ss16ppr %>%  group_by(SCHL) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
@@ -332,7 +354,7 @@ ggplot(ss16ppr,  aes(WAGP)) +
 ```
 
 ### Age
- 
+
 ```{r}
 ggplot(ss16ppr,  aes(AGEP)) +
   geom_histogram(stat="count")  +
@@ -361,6 +383,11 @@ ggplot(ss16ppr,  aes(RAC1P)) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
+
+ggplot(ss16ppr,  aes(RAC1P, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() + 
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ### White
@@ -369,6 +396,11 @@ ggplot(ss16ppr,  aes(RAC1P)) +
 ggplot(ss16ppr,  aes(RACWHT)) +
   geom_bar()  +
   theme_minimal()
+
+ggplot(ss16ppr,  aes(RACWHT, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ### Black
@@ -377,6 +409,11 @@ ggplot(ss16ppr,  aes(RACWHT)) +
 ggplot(ss16ppr,  aes(RACBLK)) +
   geom_bar()  +
   theme_minimal()
+
+ggplot(ss16ppr,  aes(RACBLK, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ### Hispanic
@@ -385,6 +422,11 @@ ggplot(ss16ppr,  aes(RACBLK)) +
 ggplot(ss16ppr,  aes(RACHISP)) +
   geom_bar()  +
   theme_minimal()
+
+ggplot(ss16ppr,  aes(RACHISP, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ### Marital Status
@@ -395,12 +437,22 @@ ggplot(ss16ppr,  aes(MAR)) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
+
+ggplot(ss16ppr,  aes(MAR, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ```{r}
 ggplot(ss16ppr,  aes(MAR1)) +
   geom_bar()  +
-  theme_minimal()  
+  theme_minimal()
+
+ggplot(ss16ppr,  aes(MAR1, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ## Ability to speak English
@@ -411,6 +463,11 @@ About half of population does not speak English well
 ggplot(ss16ppr,  aes(ENG)) +
   geom_bar()  +
   theme_minimal()  
+
+ggplot(ss16ppr,  aes(ENG, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ## Educational attainment
@@ -421,6 +478,13 @@ ggplot(ss16ppr,  aes(SCHL)) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1))
+
+ggplot(ss16ppr,  aes(SCHL, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1)) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ## Sex 
@@ -431,6 +495,11 @@ Gender is nearly equalized in Puerto Rico
 ggplot(ss16ppr,  aes(SEX)) +
   geom_bar()  +
   theme_minimal()
+
+ggplot(ss16ppr,  aes(SEX, WAGP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
 ```
 
 ### Work week
@@ -438,6 +507,10 @@ ggplot(ss16ppr,  aes(SEX)) +
 ```{r}
 ggplot(ss16ppr,  aes(WKW)) +
   geom_histogram(stat="count")  +
+  theme_minimal()
+
+ggplot(ss16ppr,  aes(WKW, WAGP)) +
+  geom_boxplot() +
   theme_minimal()
 ```
 
@@ -455,18 +528,14 @@ ggplot(ss16ppr,  aes(AGEP, WAGP)) +
 cor(ss16ppr$WAGP, ss16ppr$AGEP)
 ```
 
-The correlation of .23 for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
+The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
 
 ```{r}
 ggplot(ss16ppr,  aes(WKHP, WAGP)) +
   geom_point()  
 ```
 
-```{r}
-cor(ss16ppr$WAGP, ss16ppr$WKHP)
-```
-
-The correlation of .18 for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
+The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
 
 ```{r}
 ### By RACHISP
