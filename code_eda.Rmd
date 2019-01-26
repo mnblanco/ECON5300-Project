@@ -631,8 +631,7 @@ kable(by_SCHL) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
-$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 + $
-$SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$
+$$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 + SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$$
 
 ```{r}
 # REFRENCE: HIGH SCHOOL
