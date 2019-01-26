@@ -3,8 +3,8 @@ title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
   word_document: default
 ---
 
@@ -42,32 +42,16 @@ ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
 ss16ppr$ID <- seq.int(nrow(ss16ppr))
 ```
 
-We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
-1) How do earnings vary by education level?
-2) How does the premium for education vary by gender?
-The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`. The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. 
-
-We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
-
-
-```{r}
-# add column labels
-attr(ss16ppr$RT, "label") <- "Record Type"
-attr(ss16ppr$RAC1P, "label") <- "Recoded detailed race code"
-attr(ss16ppr$ENG, "label") <- "Ability to speak English"
-attr(ss16ppr$SCHL, "label") <- "Educational attainment"
-```
-
 ```{r}
 #select columns of interest
-ss16ppr <- ss16ppr %>% select(ID, WAGP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR, SCHL, ENG, COW, WKW, WKHP)
+ss16ppr <- ss16ppr %>% select(ID, PERNP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR, SCHL, COW, WKW, WKHP)
 ```
 
 <!-- Sample selection criteria -->
 
 ```{r}
 ss16ppr$WKHP <- as.numeric(ss16ppr$WKHP)
-ss16ppr$WAGP <- as.numeric(ss16ppr$WAGP)
+ss16ppr$PERNP <- as.numeric(ss16ppr$PERNP)
 ss16ppr$AGEP <- as.numeric(ss16ppr$AGEP)
 
 
@@ -85,11 +69,11 @@ ss16ppr <- ss16ppr %>% filter(SCHL >= 16) %>% mutate(SCHL = ifelse(SCHL == 17, 1
 # 3 .40 to 47 weeks worked during past 12 months
 ss16ppr <- ss16ppr %>% filter(between(WKW, 1,3))
 
-# Remove NAs and zero in WAGP
-ss16ppr <- ss16ppr %>% filter(!is.na(WAGP))
-ss16ppr <- ss16ppr %>% filter(WAGP != 0) 
+# Remove NAs and zero in PERNP
+ss16ppr <- ss16ppr %>% filter(!is.na(PERNP))
+ss16ppr <- ss16ppr %>% filter(PERNP != 0) 
 # Remove outlier
-ss16ppr <-ss16ppr %>% filter(WAGP != max(ss16ppr$WAGP))
+#ss16ppr <-ss16ppr %>% filter(PERNP != max(ss16ppr$PERNP))
 
 # Restirct class of worker to exclude those working without pay and unemployed
 # Class of worker
@@ -109,12 +93,23 @@ ss16ppr <- ss16ppr %>% filter(between(COW, 1, 7))
 
 # WKHP: worked at least 35 hr per week in a usual work week over this period. 
 ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
+
+ss16ppr <- ss16ppr %>% filter(PERNP < 159000) %>% filter(PERNP >= 10000)
 ```
 
 
 ```{r}
 # Decode variables of interest
+
+ss16ppr  <- ss16ppr %>% mutate(Female = ifelse(SEX == 2, 1, 0))
+
+
 ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", "Yes", "No"))
+
+ss16ppr  <- ss16ppr %>% mutate(RaceBlack = RACWHT)
+ss16ppr  <- ss16ppr %>% mutate(RaceOther = ifelse(RACBLK == 1 | RACWHT == 1, 0, 1))
+
+
 ss16ppr  <- ss16ppr %>% mutate(RACOTHER = ifelse(RACBLK == 1 | RACWHT == 1, "No", "Yes"))
 ss16ppr  <- ss16ppr %>% mutate(RACWHT = ifelse(RACWHT == 1, "Yes", "No"))
 ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
@@ -136,6 +131,11 @@ ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
   .default = "NA"
 ))
 
+
+ss16ppr  <- ss16ppr %>% mutate(Divorced = ifelse(MAR == 3 | MAR == 4, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(NeverMarried = ifelse(MAR == 5, 1, 0))
+
+
 #code to decode MAR
 ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
   "Married" = MAR == 1,
@@ -147,18 +147,15 @@ ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
   .default = "NA"
 ))
 
-#code to decode ENG
-ss16ppr <- mutate(ss16ppr, ENG = derivedFactor(
-  "NA" = (ENG == "1" | is.na(ENG)),
-  "Very well" = ENG == "2",
-  "Well" = ENG == "3",
-  "Not well" = ENG == "4",
-  "Not at all" = ENG == "5",
-  method ="first",
-  .default = "NA"
-))
-
 #Note: 16 .Regular high school diploma
+
+ss16ppr  <- ss16ppr %>% mutate(SomeCollege = ifelse(SCHL == 18, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Associate = ifelse(SCHL == 20, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Bachelor = ifelse(SCHL == 21, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Master = ifelse(SCHL == 22, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Professional = ifelse(SCHL == 23, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Doctoral = ifelse(SCHL == 24, 1, 0))
+
 
 #code to decode SCHL
 ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
@@ -187,13 +184,35 @@ ss16ppr <- mutate(ss16ppr, WKW = derivedFactor(
 ))
 ```
 
+```{r}
+#head(ss16ppr %>% arrange(PERNP), 90)
+
+#head(ss16ppr %>% arrange(desc(WKHP)), 90)
+
+
+ggplot(ss16ppr %>% filter(COW == 6),  aes(PERNP)) +
+  geom_histogram(bins = 15)  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(vjust = 1, 
+                                   size = 12, hjust = 1)) +
+  xlab("")
+```
+
+
+We used data from the 2016 ACS for Puerto Rico to examine wage gaps between individuals with different education levels. Our research questions are:
+1) How do earnings vary by education level?
+2) How does the premium for education vary by gender?
+The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`. The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. 
+
+We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earning differences by gender and marital status and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
+
 ## EDA Insights: 
 
 For our exploratory analysis we looked at population breakdowns by education, age,  marital status, gender, race, earnings, and work hours. We applied filters on education (HS diploma or above), age (18-64), work weeks (> 40 weeks) and work hours (>35 hours/week). 
 
-An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The wage distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.  Married was recategoried to married and not married.
+An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The earning distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.  Married was recategoried to married and not married.
 
-Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. It should be noted that, on the island, fluency in the English language is neither a requirement, nor really needed. As a Latin American destination, the predominant language spoken and used (e.g. street signs, day-to-day communications) is Spanish, with English only coming into use in the tourism industry, or in those industies or companies imported from the mainland. This may help to explain the wage difference, as those are likely to pay more than local businesses (note that tourism is the largest industry on the island and the source of most of the island's GDP). Men also appear to earn a small premium over women.
+Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. It should be noted that, on the island, fluency in the English language is neither a requirement, nor really needed. As a Latin American destination, the predominant language spoken and used (e.g. street signs, day-to-day communications) is Spanish, with English only coming into use in the tourism industry, or in those industies or companies imported from the mainland. This may help to explain the earning difference, as those are likely to pay more than local businesses (note that tourism is the largest industry on the island and the source of most of the island's GDP). Men also appear to earn a small premium over women.
 
 The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
 
@@ -213,16 +232,16 @@ kable(head(ss16ppr %>% select(ID, SCHL:WKHP), 20)) %>%
 
 Compute and examine descriptive statistics including the minimum, maximum, mean, and median for quantitative variables of interest
 
-### Wage
+### Total person's earnings
 
 ```{r}
-ss16ppr$WAGP <- as.numeric(ss16ppr$WAGP)
+ss16ppr$PERNP <- as.numeric(ss16ppr$PERNP)
 summary1 <-
-  list("Wages or salary income past 12 months" =
-         list("Minimum" = ~ min(.data$WAGP),
-              "Maximum" = ~ max(.data$WAGP),
-              "Median" = ~ median(.data$WAGP),
-              "Mean" = ~ mean(.data$WAGP))
+  list("Total person's earnings" =
+         list("Minimum" = ~ min(.data$PERNP),
+              "Maximum" = ~ max(.data$PERNP),
+              "Median" = ~ median(.data$PERNP),
+              "Mean" = ~ mean(.data$PERNP))
   )
 ### Overall
 whole <- summary_table(ss16ppr, summary1)
@@ -238,7 +257,7 @@ summary2 <-
          list("Minimum" = ~ min(.data$AGEP),
               "Maximum" = ~ max(.data$AGEP),
               "Median" = ~ median(.data$AGEP),
-              "Mean" = ~ mean(.data$WAGP))
+              "Mean" = ~ mean(.data$PERNP))
   )
 ### Overall
 whole <- summary_table(ss16ppr, summary2)
@@ -302,13 +321,6 @@ kable(ss16ppr %>% group_by(MAR1) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
-## Ability to speak English
-
-```{r}
-kable(ss16ppr %>%  group_by(ENG) %>% summarise(Count = n())) %>%
-  kable_styling(bootstrap_options = "striped")
-```
-
 # Educational attainment
 
 We will categorize people into seven education levels
@@ -348,10 +360,10 @@ kable(ss16ppr %>%  group_by(SEX) %>% summarise(Count = n())) %>%
 
 Generate and examine histograms for quantitative variables of interest
 
-### Wage
+### Total person's earnings
 
 ```{r}
-ggplot(ss16ppr,  aes(WAGP)) +
+ggplot(ss16ppr,  aes(PERNP)) +
   geom_histogram(bins = 15)  +
   theme_minimal() + 
   theme(axis.text.x = element_text(vjust = 1, 
@@ -391,7 +403,7 @@ ggplot(ss16ppr,  aes(RAC1P)) +
                                    size = 12, hjust = 1)) +
   xlab("")
 
-ggplot(ss16ppr,  aes(RAC1P, WAGP)) +
+ggplot(ss16ppr,  aes(RAC1P, PERNP)) +
   geom_boxplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
@@ -408,7 +420,7 @@ ggplot(ss16ppr,  aes(RACWHT)) +
   theme_minimal() +
   xlab("")
 
-ggplot(ss16ppr,  aes(RACWHT, WAGP)) +
+ggplot(ss16ppr,  aes(RACWHT, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -423,7 +435,7 @@ ggplot(ss16ppr,  aes(RACBLK)) +
   theme_minimal() +
   xlab("")
 
-ggplot(ss16ppr,  aes(RACBLK, WAGP)) +
+ggplot(ss16ppr,  aes(RACBLK, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -437,7 +449,7 @@ ggplot(ss16ppr,  aes(RACOTHER)) +
   geom_bar()  +
   theme_minimal()
 
-ggplot(ss16ppr,  aes(RACOTHER, WAGP)) +
+ggplot(ss16ppr,  aes(RACOTHER, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -452,7 +464,7 @@ ggplot(ss16ppr,  aes(RACHISP)) +
   theme_minimal() +
   xlab("")
 
-ggplot(ss16ppr,  aes(RACHISP, WAGP)) +
+ggplot(ss16ppr,  aes(RACHISP, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -469,7 +481,7 @@ ggplot(ss16ppr,  aes(MAR)) +
                                    size = 12, hjust = 1)) +
   xlab("")
 
-ggplot(ss16ppr,  aes(MAR, WAGP)) +
+ggplot(ss16ppr,  aes(MAR, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -482,24 +494,7 @@ ggplot(ss16ppr,  aes(MAR1)) +
   theme_minimal() +
   xlab("")
 
-ggplot(ss16ppr,  aes(MAR1, WAGP)) +
-  geom_boxplot() +
-  theme_minimal() +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
-  xlab("")
-```
-
-### Ability to speak English
-
-About half of population does not speak English well
-
-```{r}
-ggplot(ss16ppr,  aes(ENG)) +
-  geom_bar()  +
-  theme_minimal() +
-  xlab("") 
-
-ggplot(ss16ppr,  aes(ENG, WAGP)) +
+ggplot(ss16ppr,  aes(MAR1, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -516,7 +511,7 @@ ggplot(ss16ppr,  aes(SCHL)) +
                                    size = 12, hjust = 1)) +
   xlab("")
 
-ggplot(ss16ppr,  aes(SCHL, WAGP)) +
+ggplot(ss16ppr,  aes(SCHL, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
@@ -535,7 +530,7 @@ ggplot(ss16ppr,  aes(SEX)) +
   theme_minimal() +
   xlab("")
 
-ggplot(ss16ppr,  aes(SEX, WAGP)) +
+ggplot(ss16ppr,  aes(SEX, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -550,7 +545,7 @@ ggplot(ss16ppr,  aes(WKW)) +
   theme_minimal() +
   xlab("")
 
-ggplot(ss16ppr,  aes(WKW, WAGP)) +
+ggplot(ss16ppr,  aes(WKW, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
@@ -561,26 +556,26 @@ Task 5:
 
 Generate and examine cross tabulations, scatterplots, and/or correlation coefficients of interest
 
-### Age vs. Wage 
+### Age vs. Total person's earnings 
 
 ```{r}
-ss16ppr <- filter(ss16ppr, WAGP != max(ss16ppr$WAGP))
-ggplot(ss16ppr,  aes(AGEP, WAGP)) +
+ss16ppr <- filter(ss16ppr, PERNP != max(ss16ppr$PERNP))
+ggplot(ss16ppr,  aes(AGEP, PERNP)) +
   geom_point() +
   xlab("")
 ```
 
-The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
+The correlation of `r round(cor(ss16ppr$PERNP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
 
-### Work hours vs. Wage 
+### Work hours vs. Total person's earnings 
 
 ```{r}
-ggplot(ss16ppr,  aes(WKHP, WAGP)) +
+ggplot(ss16ppr,  aes(WKHP, PERNP)) +
   geom_point()  +
   xlab("")
 ```
 
-The correlation of `r round(cor(ss16ppr$WAGP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
+The correlation of `r round(cor(ss16ppr$PERNP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
 
 ### Ethinicity: Hispanic
 
@@ -635,3 +630,12 @@ by_SCHL <- summary_table(dplyr::group_by(ss16ppr, SCHL), summary1)
 kable(by_SCHL) %>%
   kable_styling(bootstrap_options = "striped")
 ```
+
+$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 + $
+$SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$
+
+```{r}
+# REFRENCE: HIGH SCHOOL
+lm(PERNP ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
+```
+
