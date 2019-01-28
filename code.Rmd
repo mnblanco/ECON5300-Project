@@ -130,7 +130,7 @@ ss16ppr  <- ss16ppr %>% mutate(Female = ifelse(SEX == 2, 1, 0))
 
 ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", "Yes", "No"))
 
-ss16ppr  <- ss16ppr %>% mutate(RaceBlack = RACWHT)
+ss16ppr  <- ss16ppr %>% mutate(RaceBlack = RACBLK)
 ss16ppr  <- ss16ppr %>% mutate(RaceOther = ifelse(RACBLK == 1 | RACWHT == 1, 0, 1))
 
 
