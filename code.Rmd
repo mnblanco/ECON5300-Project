@@ -2,6 +2,7 @@
 title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
+geometry: "left=2cm,right=3cm,top=2cm,bottom=2cm"
 output:
   pdf_document: default
   html_document: default
@@ -208,9 +209,7 @@ We restrict our sample to these three racial groups: White, Black and Other. In 
 
 For our exploratory analysis we looked at population breakdowns by education, age,  marital status, gender, race, earnings, and work hours. We applied filters on education (HS diploma or above), age (18-64), and work hours (>35/week). 
 
-An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The earning distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.  Married was recategoried to married and not married.
-
-Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. It should be noted that, on the island, fluency in the English language is neither a requirement, nor really needed. As a Latin American destination, the predominant language spoken and used (e.g. street signs, day-to-day communications) is Spanish, with English only coming into use in the tourism industry, or in those industies or companies imported from the mainland. This may help to explain the earning difference, as those are likely to pay more than local businesses (note that tourism is the largest industry on the island and the source of most of the island's GDP). Men also appear to earn a small premium over women.
+An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The earning distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.  Married was recategoried to married, divorced and never married.  Men also appear to earn a small premium over women.
 
 The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
 
@@ -611,15 +610,23 @@ kable(by_MAR) %>%
 ```{r}
 ### By SCHL
 by_SCHL <- summary_table(dplyr::group_by(ss16ppr, SCHL), summary1)
-kable(by_SCHL) %>%
+kable(by_SCHL[,1:2]) %>%
   kable_styling(bootstrap_options = "striped")
+
+kable(by_SCHL[,3:4]) %>%
+  kable_styling(bootstrap_options = "striped")
+
+kable(by_SCHL[,5:7]) %>%
+  kable_styling(bootstrap_options = "striped", , font_size = 8)
 ```
 
 ## Preliminary Econometric Estimates
 
 ### First Model:
 
-$$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 + SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$$
+$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
+
+$SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$
 
 ```{r}
 model_1 <- lm(PERNP ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
@@ -646,7 +653,9 @@ summary(model_1)
 
 ### Second Model:
 
-$$Earning = \beta_0 + Female * \beta_1 + SomeCollege * \beta_2 + Associate * \beta_3 + Bachelor * \beta_4 + Master * \beta_5 + Professional * \beta_6 + Doctoral * \beta_7$$
+$Earning = \beta_0 + Female * \beta_1 + SomeCollege * \beta_2 + Associate * \beta_3 + Bachelor * \beta_4 +$
+
+$Master * \beta_5 + Professional * \beta_6 + Doctoral * \beta_7$
 
 
 ```{r}
