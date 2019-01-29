@@ -3,8 +3,8 @@ title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
   word_document: default
 ---
 
@@ -18,6 +18,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+options(scipen=999)
 library(readr)
 library(ggplot2)
 library(mosaic)
@@ -32,49 +33,44 @@ fun_mean <- function(x){
   return(data.frame(y=mean(x),label=round(mean(x,na.rm=T), 2)))}
 ```
 
-## Research Questions and Geographic area 
-
 ## Data
 
 <!-- https://cran.r-project.org/web/packages/qwraps2/vignettes/summary-statistics.html -->
 
 ```{r}
+#read data set
 ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
-#kable(ss16ppr)
 ```
-
-We used data from the 2016 ACS for Puerto Rico to examine earnings gaps between individuals with different education levels. Our research questions are:
-1) How do earnings vary by education level?
-2) How does the premium for education vary by gender?
-The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`. The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. 
-
-We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earnings differences by ability to speak English and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
 
 ```{r}
 #select columns of interest
 ss16ppr <- ss16ppr %>% select(PERNP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR, SCHL, ENG, COW, WKW, WKHP)
 ```
 
-## Sample selection criteria
-
 ```{r}
+#convert to numeric data type
 ss16ppr$WKHP <- as.numeric(ss16ppr$WKHP)
 ss16ppr$PERNP <- as.numeric(ss16ppr$PERNP)
 ss16ppr$AGEP <- as.numeric(ss16ppr$AGEP)
+
 #Filters
 # AGE: Only between 18 and 64 (inclusive) years of age
 ss16ppr <- ss16ppr %>% filter(AGEP >= 18, AGEP <= 64)
+
 # SCHL: High school and above
 #       Combine: 16/17 for High school and 18/19 for Some college
 ss16ppr <- ss16ppr %>% filter(SCHL >= 16) %>% mutate(SCHL = ifelse(SCHL == 17, 16, SCHL)) %>% mutate(SCHL = ifelse(SCHL == 19, 18, SCHL))
+
 # WKW: Only between 50 and 40 hours
 # 1 .50 to 52 weeks worked during past 12 months
 # 2 .48 to 49 weeks worked during past 12 months
 # 3 .40 to 47 weeks worked during past 12 months
 ss16ppr <- ss16ppr %>% filter(between(WKW, 1,3))
+
 # Remove NAs and zero in PERNP
 ss16ppr <- ss16ppr %>% filter(!is.na(PERNP))
 ss16ppr <- ss16ppr %>% filter(PERNP != 0) 
+
 # Remove outlier
 #ss16ppr <-ss16ppr %>% filter(PERNP != max(ss16ppr$PERNP))
 # Restirct class of worker to exclude those working without pay and unemployed
@@ -91,6 +87,7 @@ ss16ppr <- ss16ppr %>% filter(PERNP != 0)
 # 8 Working without pay in family business or farm
 # 9 Unemployed and last worked 5 years ago or earlier or never worked
 ss16ppr <- ss16ppr %>% filter(between(COW, 1, 7))
+
 # WKHP: worked at least 35 hr per week in a usual work week over this period. 
 ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
 ss16ppr <- ss16ppr %>% filter(PERNP < 159000) %>% filter(PERNP >= 10000)
@@ -106,7 +103,10 @@ ss16ppr  <- ss16ppr %>% mutate(RaceOther = ifelse(RACBLK == 1 | RACWHT == 1, 0, 
 ss16ppr  <- ss16ppr %>% mutate(RACOTHER = ifelse(RACBLK == 1 | RACWHT == 1, "No", "Yes"))
 ss16ppr  <- ss16ppr %>% mutate(RACWHT = ifelse(RACWHT == 1, "Yes", "No"))
 ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
+
+
 ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, "Yes", "No"))
+
 #code to decode RAC1P
 ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
   "White" = RAC1P == 1,
@@ -123,6 +123,17 @@ ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
 ))
 ss16ppr  <- ss16ppr %>% mutate(Divorced = ifelse(MAR == 3 | MAR == 4, 1, 0))
 ss16ppr  <- ss16ppr %>% mutate(NeverMarried = ifelse(MAR == 5, 1, 0))
+
+
+#code to decode MAR2
+ss16ppr <- mutate(ss16ppr, MAR2 = derivedFactor(
+  "Married" = MAR == 1 | MAR == 2,
+  "Divorced" = MAR == 3 | MAR == 4,
+  "Never married" = MAR == 5,
+  method ="first",
+  .default = "NA"
+))
+
 #code to decode MAR
 ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
   "Married" = MAR == 1,
@@ -133,6 +144,8 @@ ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
   method ="first",
   .default = "NA"
 ))
+
+
 #Note: 16 .Regular high school diploma
 ss16ppr  <- ss16ppr %>% mutate(SomeCollege = ifelse(SCHL == 18, 1, 0))
 ss16ppr  <- ss16ppr %>% mutate(Associate = ifelse(SCHL == 20, 1, 0))
@@ -163,19 +176,26 @@ ss16ppr <- mutate(ss16ppr, WKW = derivedFactor(
   method ="first",
   .default = "NA"
 ))
+
+#code to decode SEX
+ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
+  "Male" = SEX == 1,
+  "Female" = SEX == 2,
+  method ="first",
+  .default = "NA"
+))
 ```
 
 ```{r}
 #head(ss16ppr %>% arrange(PERNP), 90)
 #head(ss16ppr %>% arrange(desc(WKHP)), 90)
-ggplot(ss16ppr %>% filter(COW == 6),  aes(PERNP)) +
-  geom_histogram(bins = 15)  +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(vjust = 1, 
-                                   size = 12, hjust = 1)) +
-  xlab("")
+# ggplot(ss16ppr %>% filter(COW == 6),  aes(PERNP)) +
+#   geom_histogram(bins = 15)  +
+#   theme_minimal() + 
+#   theme(axis.text.x = element_text(vjust = 1, 
+#                                    size = 12, hjust = 1)) +
+#   xlab("")
 ```
-
 
 We used data from the 2016 ACS for Puerto Rico to examine wage gaps between individuals with different education levels. Our research questions are:
 1) How do earnings vary by education level?
@@ -192,7 +212,6 @@ An earnings histogram identified a default maximum amount of earnings (189k) whi
 
 Earnings appear positively correlated with how well people speak English, as well as with higher levels of education. It should be noted that, on the island, fluency in the English language is neither a requirement, nor really needed. As a Latin American destination, the predominant language spoken and used (e.g. street signs, day-to-day communications) is Spanish, with English only coming into use in the tourism industry, or in those industies or companies imported from the mainland. This may help to explain the earning difference, as those are likely to pay more than local businesses (note that tourism is the largest industry on the island and the source of most of the island's GDP). Men also appear to earn a small premium over women.
 
-
 The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
 
 ## Task 1: 
@@ -200,7 +219,9 @@ The age distribution of full time workers is skewed towards older adults, possib
 Examine the first 10 or 20 observations (rows of data) corresponding to variables of interest (columns) and compare the observed values to the data dictionary for person records.
 
 ```{r}
-kable(head(ss16ppr, 20)) %>%
+
+ss16ppr1 <- ss16ppr %>% select(c(PERNP, SEX, AGEP, RAC1P, MAR, SCHL, WKW, WKHP)) %>% rename(Earnings = PERNP, Sex = SEX, Age = AGEP, Race =RAC1P, 'Marital Status' = MAR, Education = SCHL, 'Work Week' = WKW, 'Work Hours' = WKHP)
+kable(head(ss16ppr1, 20)) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
@@ -257,19 +278,6 @@ kable(whole) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
-
-<!-- We were asked to perform an exploratory data analysis (EDA) based on American Community Survey, and our research questions are: 1. In Puerto Rico, how does earnings vary by educational attainment? 2. How does earnigs vary by how well English is spoken?  -->
-
-<!-- Based on these two questions, we needed several attributes from the survey, which are ss16ppr$RT, ss16ppr$RAC1P, ss16ppr$RAC2P, ss16ppr$RAC3P, ss16ppr$ENG, ss16ppr$DREM, ss16ppr$SCHL. In detail, we looked into race diversity, marital status, ability to speak English, cognitive difficulty, educational attainment, and gender in Puerto Rico. -->
-
-
-### Ethicity: Hispanic
-
-```{r}
-kable(ss16ppr %>% group_by(RACHISP) %>% summarise(Count = n())) %>%
-  kable_styling(bootstrap_options = "striped")
-```
-
 ### Race: White
 
 In Puerto Rico, the majority of people identify themselves as white.  Minority races including American Indian, Alaska Native, Asian, Native Hawaiian and Other Pacific Islander can be eliminated.
@@ -300,6 +308,8 @@ kable(ss16ppr %>%  group_by(MAR) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped") 
 kable(ss16ppr %>% group_by(MAR1) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
+kable(ss16ppr %>% group_by(MAR2) %>% summarise(Count = n())) %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 # Educational attainment
@@ -320,13 +330,6 @@ kable(ss16ppr %>%  group_by(SCHL) %>% summarise(Count = n())) %>%
 ## Sex 
 
 ```{r}
-#code to decode SEX
-ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
-  "Male" = SEX == 1,
-  "Female" = SEX == 2,
-  method ="first",
-  .default = "NA"
-))
 kable(ss16ppr %>%  group_by(SEX) %>% summarise(Count = n())) %>%
   kable_styling(bootstrap_options = "striped")
 ```
@@ -342,7 +345,8 @@ ggplot(ss16ppr,  aes(PERNP)) +
   geom_histogram(bins = 15)  +
   theme_minimal() + 
   theme(axis.text.x = element_text(vjust = 1, 
-                                   size = 12, hjust = 1))
+                                   size = 12, hjust = 1)) +
+  xlab("Earnings")
 ```
 
 ### Age
@@ -351,8 +355,9 @@ ggplot(ss16ppr,  aes(PERNP)) +
 ggplot(ss16ppr,  aes(AGEP)) +
   geom_histogram(stat="count")  +
   theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Age")
 ```
 
 ### Hours worked
@@ -360,7 +365,8 @@ ggplot(ss16ppr,  aes(AGEP)) +
 ```{r}
 ggplot(ss16ppr,  aes(WKHP)) +
   geom_histogram(stat="count")  +
-  theme_minimal() 
+  theme_minimal() + 
+  xlab("Hours Worked per Week")
 ```
 
 ## Task 4:
@@ -374,39 +380,44 @@ ggplot(ss16ppr,  aes(RAC1P)) +
   geom_bar()  +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+                                   size = 12, hjust = 1)) + 
+  xlab("Race")
+
 ggplot(ss16ppr,  aes(RAC1P, PERNP)) +
   geom_boxplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Race") + ylab("Earnings")
 ```
 
-### White
+### Race: White
 
 ```{r}
 ggplot(ss16ppr,  aes(RACWHT)) +
   geom_bar()  +
-  theme_minimal()
+  theme_minimal() + 
+  xlab("Race White")
 ggplot(ss16ppr,  aes(RACWHT, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Race White") + ylab("Earnings")
 ```
 
-### Black
+### Race: Black
 
 ```{r}
 ggplot(ss16ppr,  aes(RACBLK)) +
   geom_bar()  +
   theme_minimal() +
-  xlab("")
+  xlab("Race Black")
 ggplot(ss16ppr,  aes(RACBLK, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) +
-  xlab("")
+  xlab("Race Black") + ylab("Earnings")
 ```
 
 ### Race: Other
@@ -414,11 +425,13 @@ ggplot(ss16ppr,  aes(RACBLK, PERNP)) +
 ```{r}
 ggplot(ss16ppr,  aes(RACOTHER)) +
   geom_bar()  +
-  theme_minimal()
+  theme_minimal() + 
+  xlab("Other")
 ggplot(ss16ppr,  aes(RACOTHER, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Race Other") + ylab("Earnings")
 ```
 
 ### Marital Status
@@ -427,26 +440,40 @@ ggplot(ss16ppr,  aes(RACOTHER, PERNP)) +
 ggplot(ss16ppr,  aes(MAR)) +
   geom_bar()  +
   theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Marital Status")
+
 ggplot(ss16ppr,  aes(MAR, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Marital Status") + ylab("Earnings")
 ```
 
 ```{r}
 ggplot(ss16ppr,  aes(MAR1)) +
   geom_bar()  +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1)) 
+  xlab("Marital Status") 
+
 ggplot(ss16ppr,  aes(MAR1, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1)) +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Marital Status") + ylab("Earnings")
+```
+
+```{r}
+ggplot(ss16ppr,  aes(MAR2)) +
+  geom_bar()  +
+  theme_minimal() + 
+  xlab("Marital Status")
+ggplot(ss16ppr,  aes(MAR2, PERNP)) +
+  geom_boxplot() +
+  theme_minimal() +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Marital Status") + ylab("Earnings")
 ```
 
 ## Educational attainment
@@ -456,13 +483,16 @@ ggplot(ss16ppr,  aes(SCHL)) +
   geom_bar()  +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1))
+                                   size = 12, hjust = 1)) + 
+  xlab("Education")
+
 ggplot(ss16ppr,  aes(SCHL, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1)) +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Education") + ylab("Earnings")
 ```
 
 ## Sex 
@@ -472,11 +502,13 @@ Gender is nearly equalized in Puerto Rico
 ```{r}
 ggplot(ss16ppr,  aes(SEX)) +
   geom_bar()  +
-  theme_minimal()
+  theme_minimal() + 
+  xlab("Sex")
 ggplot(ss16ppr,  aes(SEX, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Sex") + ylab("Earnings")
 ```
 
 ### Work week
@@ -484,11 +516,13 @@ ggplot(ss16ppr,  aes(SEX, PERNP)) +
 ```{r}
 ggplot(ss16ppr,  aes(WKW)) +
   geom_bar()  +
-  theme_minimal()
+  theme_minimal() + 
+  xlab("Work week")
 ggplot(ss16ppr,  aes(WKW, PERNP)) +
   geom_boxplot() +
   theme_minimal() +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3)
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size=3) + 
+  xlab("Work week") + ylab("Earnings")
 ```
 
 Task 5:
@@ -501,7 +535,26 @@ Generate and examine cross tabulations, scatterplots, and/or correlation coeffic
 ss16ppr <- filter(ss16ppr, PERNP != max(ss16ppr$PERNP))
 ggplot(ss16ppr,  aes(AGEP, PERNP)) +
   geom_point() +
-  xlab("")
+  theme_minimal() +
+  xlab("Age") + ylab("Earnings")
+
+ggplot(ss16ppr) +
+  geom_point(aes(AGEP, PERNP), alpha = 1 / 5) +
+  theme_minimal() +
+  xlab("Age") + ylab("Earnings") +
+  facet_grid(SEX ~ .)
+
+ggplot(ss16ppr) +
+  geom_point(aes(AGEP, PERNP), alpha = 1 / 5) +
+  theme_minimal() +
+  xlab("Age") + ylab("Earnings") +
+  facet_wrap(SCHL ~ .)
+
+ggplot(ss16ppr) +
+  geom_point(aes(AGEP, PERNP), alpha = 1 / 5) +
+  theme_minimal() +
+  xlab("Age") + ylab("Earnings") +
+  facet_wrap(SEX ~ .) 
 ```
 
 The correlation of `r round(cor(ss16ppr$PERNP, ss16ppr$AGEP),2)` for age and earnings indicates a very weak relationship. Age is neither a primary reason for differences in earnings, nor a clear proxy for some other variable.
@@ -511,17 +564,13 @@ The correlation of `r round(cor(ss16ppr$PERNP, ss16ppr$AGEP),2)` for age and ear
 ```{r}
 ggplot(ss16ppr,  aes(WKHP, PERNP)) +
   geom_point()  +
-  xlab("")
+  xlab("Work hours") + ylab("Earnings")
 ```
 
 The correlation of `r round(cor(ss16ppr$PERNP, ss16ppr$WKHP),2)` for earnings and work hours is also very weak. No doubt it would be strong if the data were not filtered to those working more than 35 hours per week. Interestingly, earnings appear to drop for those working more than 60 hours per week.
 
-```{r}
-### By RACHISP
-by_RACHISP <- summary_table(dplyr::group_by(ss16ppr, RACHISP), summary1)
-kable(by_RACHISP) %>%
-  kable_styling(bootstrap_options = "striped")
-```
+
+### Race: White
 
 ```{r}
 ### By RACWHT
@@ -529,6 +578,8 @@ by_RACWHT <- summary_table(dplyr::group_by(ss16ppr, RACWHT), summary1)
 kable(by_RACWHT) %>%
   kable_styling(bootstrap_options = "striped")
 ```
+
+### Race: Black
 
 ```{r}
 ### By RACBLK
@@ -564,36 +615,37 @@ kable(by_SCHL) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+## Preliminary Econometric Estimates
 
-## First Model:
+### First Model:
+
 $$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 + SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$$
 
 ```{r}
-# REFRENCE: HIGH SCHOOL
 model_1 <- lm(PERNP ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
-
 summary(model_1)
 ```
 
 
 
 + Coefficients Explanation 
-    + Holding gender, race, education and age constant, married or widowed people makes $1147 more than people who divorced or separated on average.
-    + Holding gender, race, education and age constant, married or widowed people makes $2960 more than people who never married on average.
-    + Holding marriage, race, education and age constant, male makes $4825 more than female on average.
-    + Holding marriage, gender, education and age constant, White makes $1302 more than Black on average.
-    + Holding marriage, gender, education and age constant, White makes $2132 more than Other race on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $4312 less than people have some college education on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $4232 less than people have associate education on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $12407 less than people have bachelor’s degree on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $17856 less than people have master’s degree on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $28203 less than people have Professional education on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $35733 less than people have doctor’s degree on average.
-    + Holding marriage, gender, race and education constant, people make $285 more as age increases on average between the age of 18 to 64.
+    + Holding gender, race, education and age constant, married or widowed people makes $`r abs(round(model_1$coefficients["Divorced"], 2))` more than people who divorced or separated on average.
+    + Holding gender, race, education and age constant, married or widowed people makes $`r abs(round(model_1$coefficients["NeverMarried"], 2))` more than people who never married on average.
+    + Holding marriage, race, education and age constant, male makes $`r abs(round(model_1$coefficients["Female"], 2))` more than female on average.
+    + Holding marriage, gender, education and age constant, White makes $`r abs(round(model_1$coefficients["RaceBlack"], 2))` more than Black on average.
+    + Holding marriage, gender, education and age constant, White makes $`r abs(round(model_1$coefficients["RaceOther"], 2))` more than Other race on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["SomeCollege"], 2))` less than people have some college education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Associate"], 2))` less than people have associate education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Bachelor"], 2))` less than people have bachelor’s degree on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Master"], 2))` less than people have master’s degree on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Professional"], 2))` less than people have Professional education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Doctoral"], 2))` less than people have doctor’s degree on average.
+    + Holding marriage, gender, race and education constant, people make $`r abs(round(model_1$coefficients["AGEP"], 2))` more as age increases on average between the age of 18 to 64.
 
 
 
-## Second Model:
+### Second Model:
+
 $$Earning = \beta_0 + Female * \beta_1 + SomeCollege * \beta_2 + Associate * \beta_3 + Bachelor * \beta_4 + Master * \beta_5 + Professional * \beta_6 + Doctoral * \beta_7$$
 
 
@@ -604,12 +656,12 @@ summary(model_2)
 
 + Coefficients Explanation
     + Holding education constant, male makes $4656 more than female on average.
-    + Holding gender constant, people have high school education makes $3340 less than people have some college education on average.
-    + Holding gender constant, people have high school education makes $4001 less than people have associate education on average.
-    + Holding gender constant, people have high school education makes $12229 less than people have bachelor’s degree on average.
-    + Holding gender constant, people have high school education makes $17934 less than people have master’s degree on average.
-    + Holding gender constant, people have high school education makes $28336 less than people have Professional education on average.
-    + Holding gender constant, people have high school education makes $37602 less than people have doctor’s degree on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["SomeCollege"], 2))` less than people have some college education on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Associate"], 2))` less than people have associate education on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Bachelor"], 2))` less than people have bachelor’s degree on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Master"], 2))` less than people have master’s degree on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Professional"], 2))` less than people have Professional education on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Doctoral"], 2))` less than people have doctor’s degree on average.
     
 
 
