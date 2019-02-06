@@ -2,8 +2,8 @@
 title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
   word_document: default
 subtitle: Revised Econometric Model
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
@@ -225,7 +225,7 @@ summary(Model_1)
 ### Interpretation
 
 + Coefficients Explanation 
-    + Holding gender, race, education and age constant, married people makes $`r abs(round(Model_1$coefficients["Widowed"], 2))` more than people who widowed on average.
+    + Holding gender, race, education and age constant, married people makes $`r abs(round(Model_1$coefficients["Widowed"], 2))` less than people who widowed on average.
     + Holding gender, race, education and age constant, married people makes $`r abs(round(Model_1$coefficients["Divorced"], 2))` more than people who divorced on average.
     + Holding gender, race, education and age constant, married people makes $`r abs(round(Model_1$coefficients["Separated"], 2))` more than people who separated on average.
     + Holding gender, race, education and age constant, married people makes $`r abs(round(Model_1$coefficients["NeverMarried"], 2))` more than people who never married on average.
@@ -290,7 +290,20 @@ summary(LogModel_1)
 
 + Coefficients Explanation 
 
-    + Holding gender, race, education and age constant, married people makes $`r round((exp(LogModel_1$coefficients["Widowed"]) -1) * 100, 2)`% more than people who widowed on average.
+    + Holding gender, race, education and age constant, married people makes $`r abs(round((exp(LogModel_1$coefficients["Widowed"]) -1) * 100, 2))`% less than people who widowed on average.
+    + Holding gender, race, education and age constant, married people makes $`r abs(round((exp(LogModel_1$coefficients["Divorced"]) -1) * 100, 2))`% more than people who divorced on average.
+    + Holding gender, race, education and age constant, married people makes $`r abs(round((exp(LogModel_1$coefficients["Separated"]) -1) * 100, 2))`% more than people who separated on average.
+    + Holding gender, race, education and age constant, married people makes $`r abs(round((exp(LogModel_1$coefficients["NeverMarried"]) -1) * 100, 2))`% more than people who never married on average.
+    + Holding marriage, race, education and age constant, male makes $`r abs(round((exp(LogModel_1$coefficients["Female"]) -1) * 100, 2))`% more than female on average.
+    + Holding marriage, gender, education and age constant, White makes $`r abs(round((exp(LogModel_1$coefficients["RaceBlack"]) -1) * 100, 2))`% more than Black on average.
+    + Holding marriage, gender, education and age constant, White makes $`r abs(round((exp(LogModel_1$coefficients["RaceOther"]) -1) * 100, 2))`% more than Other race on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round((exp(LogModel_1$coefficients["SomeCollege"]) -1) * 100, 2))`% less than people have some college education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round((exp(LogModel_1$coefficients["Associate"]) -1) * 100, 2))`% less than people have associate education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round((exp(LogModel_1$coefficients["Bachelor"]) -1) * 100, 2))`% less than people have bachelor’s degree on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round((exp(LogModel_1$coefficients["Master"]) -1) * 100, 2))`% less than people have master’s degree on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round((exp(LogModel_1$coefficients["Professional"]) -1) * 100, 2))`% less than people have Professional education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round((exp(LogModel_1$coefficients["Doctoral"]) -1) * 100, 2))`% less than people have doctor’s degree on average.
+    + Holding marriage, gender, race and education constant, people make $`r abs(round((exp(LogModel_1$coefficients["AGEP"]) -1) * 100, 2))`% more as age increases on average between the age of 18 to 64.
 
 ### Model Diagnostics
 
