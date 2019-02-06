@@ -282,13 +282,13 @@ set_theme_2()
 p[2]
 ```
 
-The plot shows that the distribution of the residuals are approximately normally distributed.  The “thin tails” correspond to the first quantiles occurring at less than expected values and the last quantiles occurring at larger than expected values. 
+The plot shows that the distribution of the residuals are not approximately normally distributed.  The “thin tail” correspond to the first quantiles occurring at less than expected values and there is an outlier point. 
 
 ```{r echo=FALSE}
 p[3]
 ```
 
-The plot shows that the distribution of the residuals are approximately normally distributed.
+The plot shows that the distribution of the residuals is not approximately normally distributed but skewed to the right.
 
 ```{r echo=FALSE}
 p[4]
@@ -397,7 +397,7 @@ p[4]
 
 The plot shows heteroscedasticity as the variance of the residuals are not constant. 
 
-```{r }
+```{r echo=FALSE, include=FALSE}
 library(stargazer)
 
 # gather robust standard errors in a list
