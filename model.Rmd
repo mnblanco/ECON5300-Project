@@ -4,7 +4,10 @@ author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 geometry: "left=2cm,right=3cm,top=2cm,bottom=2cm"
 output:
-  html_document: default
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
   pdf_document: default
   word_document: default
 ---
@@ -219,7 +222,7 @@ The age distribution of full time workers is skewed towards older adults, possib
 
 ## Preliminary Econometric Estimates
 
-### First Model:
+### First Model
 
 $Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
 
@@ -229,9 +232,11 @@ $SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \be
 model_1 <- lm(PERNP ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
 summary(model_1)
 plot_model(model_1, type = "diag")
+```
 
+### First Model log
 
-
+```{r}
 model_1 <- lm(log(PERNP) ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
 summary(model_1)
 plot_model(model_1, type = "diag")
@@ -254,7 +259,7 @@ plot_model(model_1, type = "diag")
     + Holding marriage, gender, race and education constant, people make $`r abs(round(model_1$coefficients["AGEP"], 2))` more as age increases on average between the age of 18 to 64.
 
 
-### First Model Updated:
+### First Model Updated
 
 $Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
 
@@ -270,15 +275,18 @@ ss16ppr  <- ss16ppr %>% mutate(NeverMarried = ifelse(MAR == "Never married", 1, 
 model_1 <- lm(PERNP ~ Widowed + Divorced + Separated + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
 summary(model_1)
 plot_model(model_1, type = "diag")
+```
 
+### First Model log Updated
 
+```{r}
 model_1 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
 summary(model_1)
 plot_model(model_1, type = "diag")
 ```
 
 
-### Second Model:
+### Second Model
 
 $Earning = \beta_0 + Female * \beta_1 + SomeCollege * \beta_2 + Associate * \beta_3 + Bachelor * \beta_4 +$
 
@@ -289,8 +297,11 @@ $Master * \beta_5 + Professional * \beta_6 + Doctoral * \beta_7$
 model_2 <-lm(PERNP ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data = ss16ppr)
 summary(model_2)
 plot_model(model_2, type = "diag")
+```
 
+### Second Model log
 
+``{`r}
 model_2 <-lm(log(PERNP) ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data = ss16ppr)
 summary(model_2)
 plot_model(model_2, type = "diag")
