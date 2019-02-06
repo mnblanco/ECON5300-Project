@@ -2,8 +2,8 @@
 title: "Labor Market Analysis"
 author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
   word_document: default
 subtitle: Revised Econometric Model
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
@@ -127,6 +127,7 @@ ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
 ss16ppr <- ss16ppr %>% filter(PERNP < 159000) %>% filter(PERNP >= 10000)
 ```
 
+
 ```{r}
 # Decode variables of interest
 ss16ppr  <- ss16ppr %>% mutate(Female = ifelse(SEX == 2, 1, 0))
@@ -198,7 +199,6 @@ ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
   method ="first",
   .default = "NA"
 ))
-
 # 1 .50 to 52 weeks worked during past 12 months
 # 2 .48 to 49 weeks worked during past 12 months
 # 3 .40 to 47 weeks worked during past 12 months
@@ -219,7 +219,6 @@ ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
   .default = "NA"
 ))
 ```
-
 
 1) How do earnings vary by education level?
 2) How does the premium for education vary by gender?
@@ -265,38 +264,8 @@ summary(Model_1)
 ```{r}
 plot_model(Model_1, group.terms = c(1,1,1,1,2,3,3,4,4,4,4,4,4,5))
 
-p <- plot_model(Model_1, type = "diag")
+plot_model(Model_1, type = "diag")
 ```
-
-```{r echo=FALSE}
-kable(ols_vif_tol(Model_1))
-
-set_theme_1()
-p[1]
-```
-
-A VIF chart shows that there is no correlation among the kth predictor and the remaining predictor variables.
-
-```{r echo=FALSE}
-set_theme_2()
-p[2]
-```
-
-The plot shows that the distribution of the residuals are approximately normally distributed.  The “thin tails” correspond to the first quantiles occurring at less than expected values and the last quantiles occurring at larger than expected values. 
-
-```{r echo=FALSE}
-set_theme_1()
-p[3]
-```
-
-The plot shows that the distribution of the residuals are approximately normally distributed.
-
-```{r echo=FALSE}
-set_theme_1()
-p[4]
-```
-
-The plot shows heteroscedasticity as the variance of the residuals are not constant. 
 
 ### Breusch-Pagan test
 
@@ -408,5 +377,5 @@ stargazer(Model_1, LogModel_1,
           digits = 3,
           header = F,
           column.labels = c("(I)", "(II)"),  
-          out="RevisedModels.htm")
+          out="Revised_Models.htm")
 ```
