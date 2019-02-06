@@ -38,7 +38,7 @@ fun_mean <- function(x){
   return(data.frame(y=mean(x),label=round(mean(x,na.rm=T), 2)))}
 ```
 
-## Data
+## Research Questions
 
 <!-- https://cran.r-project.org/web/packages/qwraps2/vignettes/summary-statistics.html -->
 
@@ -202,69 +202,10 @@ ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
 #   xlab("")
 ```
 
-Research Questions:
 1) How do earnings vary by education level?
 2) How does the premium for education vary by gender?
 
-## Preliminary Econometric Estimates
-
-### First Model:
-
-$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
-
-$SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$
-
-```{r}
-model_1 <- lm(PERNP ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
-summary(model_1)
-plot_model(model_1, type = "diag")
-
-
-#Conduct BPG Test
-bptest(model_1)
-bptestequation = lm(residuals(model_1)*residuals(model_1) ~ Divorced + NeverMarried + Female + 
-                      RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + 
-                      Professional + Doctoral + AGEP, data=ss16ppr)
-summary(bptestequation) #note: BP = n*RSquared of model with squared residuals as dependent variable 
-
-#Generate the Variance Covariance Matrix of the Parameter Estimates
-vcovHC(model_1, type = "HC") #the diagonal elements are the variances of the parameter estimates
-
-#Generate the Robust standard errors and print them on screen 
-sandwich_se <- diag(vcovHC(model_1, type = "HC"))^0.5
-sandwich_se
-
-#Estimate Logarithmic Model with Age in Quadratic Form
-LogModel_1 = lm(log(PERNP, base = exp(1)) ~ Divorced + NeverMarried + Female + RaceBlack + 
-                  RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + 
-                  Doctoral + AGEP, data=ss16ppr)
-
-summary(LogModel_1)
-
-plot_model(LogModel_1, type = "diag")
-
-
-
-```
-
-
-
-+ Coefficients Explanation 
-    + Holding gender, race, education and age constant, married or widowed people makes $`r abs(round(model_1$coefficients["Divorced"], 2))` more than people who divorced or separated on average.
-    + Holding gender, race, education and age constant, married or widowed people makes $`r abs(round(model_1$coefficients["NeverMarried"], 2))` more than people who never married on average.
-    + Holding marriage, race, education and age constant, male makes $`r abs(round(model_1$coefficients["Female"], 2))` more than female on average.
-    + Holding marriage, gender, education and age constant, White makes $`r abs(round(model_1$coefficients["RaceBlack"], 2))` more than Black on average.
-    + Holding marriage, gender, education and age constant, White makes $`r abs(round(model_1$coefficients["RaceOther"], 2))` more than Other race on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["SomeCollege"], 2))` less than people have some college education on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Associate"], 2))` less than people have associate education on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Bachelor"], 2))` less than people have bachelor’s degree on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Master"], 2))` less than people have master’s degree on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Professional"], 2))` less than people have Professional education on average.
-    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Doctoral"], 2))` less than people have doctor’s degree on average.
-    + Holding marriage, gender, race and education constant, people make $`r abs(round(model_1$coefficients["AGEP"], 2))` more as age increases on average between the age of 18 to 64.
-
-
-### First Model Updated:
+## Revised Model
 
 $Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
 
@@ -305,55 +246,6 @@ summary(LogModel_1)
 
 plot_model(LogModel_1, type = "diag")
 ```
-
-
-### Second Model:
-
-$Earning = \beta_0 + Female * \beta_1 + SomeCollege * \beta_2 + Associate * \beta_3 + Bachelor * \beta_4 +$
-
-$Master * \beta_5 + Professional * \beta_6 + Doctoral * \beta_7$
-
-
-```{r}
-model_2 <-lm(PERNP ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data = ss16ppr)
-summary(model_2)
-plot_model(model_2, type = "diag")
-
-
-#Conduct BPG Test
-bptest(model_2)
-bptestequation = lm(residuals(model_2)*residuals(model_2) ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data=ss16ppr)
-summary(bptestequation) #note: BP = n*RSquared of model with squared residuals as dependent variable 
-
-#Generate the Variance Covariance Matrix of the Parameter Estimates
-vcovHC(model_2, type = "HC") #the diagonal elements are the variances of the parameter estimates
-
-#Generate the Robust standard errors and print them on screen 
-sandwich_se <- diag(vcovHC(model_2, type = "HC"))^0.5
-sandwich_se
-
-#Estimate Logarithmic Model with Age in Quadratic Form
-LogModel_2 = lm(log(PERNP, base = exp(1)) ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data=ss16ppr)
-
-summary(LogModel_2)
-
-plot_model(LogModel_2, type = "diag")
-```
-
-+ Coefficients Explanation
-    + Holding education constant, male makes $`r abs(round(model_1$coefficients["Female"], 2))` more than female on average.
-    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["SomeCollege"], 2))` less than people have some college education on average.
-    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Associate"], 2))` less than people have associate education on average.
-    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Bachelor"], 2))` less than people have bachelor’s degree on average.
-    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Master"], 2))` less than people have master’s degree on average.
-    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Professional"], 2))` less than people have Professional education on average.
-    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Doctoral"], 2))` less than people have doctor’s degree on average.
-    
-
-
-
-
-
 
 
 
