@@ -411,5 +411,5 @@ stargazer(Model_1, LogModel_1,
           digits = 3,
           header = F,
           column.labels = c("(I)", "(II)"),  
-          out="Revised_Models.htm")
+          out="Revised_Models.html")
 ```
