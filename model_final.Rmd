@@ -245,6 +245,24 @@ summary(model_1)
 plot_model(model_1, type = "diag")
 ```
 
+The model for women is robusted:
+
++ Controlling for race, education and age, married women earn on average about `r abs(round((exp(model_1$coefficients["Widowed"]) -1) * 100, 2))`% less than widowed women. The penalty associated with marriage is statistically significantly (p < .05). 
++ Controlling for race, education and age, married women earn on average about `r abs(round((exp(model_1$coefficients["Divorced"]) -1) * 100, 2))`% more than divorced women. The premium associated with marriage is not statistically significantly (p > .05). 
++ Controlling for race, education and age, married women earn on average about `r abs(round((exp(model_1$coefficients["Separated"]) -1) * 100, 2))`% more than separated women. The premium associated with marriage is not statistically significantly (p > .05). 
++ Controlling for race, education and age, married women earn on average about `r abs(round((exp(model_1$coefficients["NeverMarried"]) -1) * 100, 2))`% more than never married women. The premium associated with marriage is not statistically significantly (p > .05). 
++ Controlling for marriage, education and age, White women earn on average about `r abs(round((exp(model_1$coefficients["RaceBlack"]) -1) * 100, 2))`% more than Black women. The premium associated with raceBlack is not statistically significantly (p > .05). 
++ Controlling for marriage, education and age, White women earn on average about `r abs(round((exp(model_1$coefficients["RaceOther"]) -1) * 100, 2))`% more than Other race women. The premium associated with otherrace is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, women have high school education earn on average about `r abs(round((exp(model_1$coefficients["SomeCollege"]) -1) * 100, 2))`% less than women have some college education. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, women have high school education earn on average about `r abs(round((exp(model_1$coefficients["Associate"]) -1) * 100, 2))`% less than women have associate education. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, women have high school education earn on average about `r abs(round((exp(model_1$coefficients["Bachelor"]) -1) * 100, 2))`% less than women have bachelor’s degree. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, women have high school education earn on average about `r abs(round((exp(model_1$coefficients["Master"]) -1) * 100, 2))`% less than women have master’s degree. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, women have high school education earn on average about `r abs(round((exp(model_1$coefficients["Professional"]) -1) * 100, 2))`% less than women have Professional education. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, women have high school education earn on average about `r abs(round((exp(model_1$coefficients["Doctoral"]) -1) * 100, 2))`% less than women have doctor’s degree. The penalty associated with education level is statistically significantly (p < .05). 
++ In our subsample of female, predicted earnings increase at a decreasing rate within the age range of our sample, namely, 18 to 64 years. The average age for maximum earnings is `r abs(round(model_1$coefficients["AGEP"]/(2*model_1$coefficients["I(AGEP * AGEP)"]), 2))`. The coefficients on age is statistically significant, though its square is not statistically significant. 
+
+
+
 ### Gender: Male
 
 ```{r}
@@ -256,6 +274,23 @@ plot_model(model_2, type = "diag")
 ```{r}
 model_3 <- lm(log(PERNP) ~ Female+ Widowed + Divorced + Separated + NeverMarried  + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr)
 ```
+
+For men:
+
++ Controlling for race, education and age, married men earn on average about `r abs(round((exp(model_2$coefficients["Widowed"]) -1) * 100, 2))`% less than men who widowed. The premium associated with marriage is statistically significantly (p < .05). 
++ Controlling for race, education and age, married men earn on average about `r abs(round((exp(model_2$coefficients["Divorced"]) -1) * 100, 2))`% more than men who divorced. The premium associated with marriage is statistically significantly (p < .05). 
++ Controlling for race, education and age, married men earn on average about `r abs(round((exp(model_2$coefficients["Separated"]) -1) * 100, 2))`% more than men who separated. The premium associated with marriage is statistically significantly (p < .05). 
++ Controlling for race, education and age, married men earn on average about `r abs(round((exp(model_2$coefficients["NeverMarried"]) -1) * 100, 2))`% more than men who never married. The premium associated with marriage is not statistically significantly (p > .05). 
++ Controlling for marriage, education and age, White men earn on average about `r abs(round((exp(model_2$coefficients["RaceBlack"]) -1) * 100, 2))`% more than Black men. The premium associated with raceBlack is not statistically significantly (p > .05). 
++ Controlling for marriage, education and age, White men earn on average about `r abs(round((exp(model_2$coefficients["RaceOther"]) -1) * 100, 2))`% more than Other race men. The premium associated with otherRace is not statistically significantly (p > .05). 
++ Controlling for marriage, race and age, men have high school education earn on average about `r abs(round((exp(model_2$coefficients["SomeCollege"]) -1) * 100, 2))`% less than men have some college education. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, men have high school education earn on average about `r abs(round((exp(model_2$coefficients["Associate"]) -1) * 100, 2))`% less than men have associate education. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, men have high school education earn on average about `r abs(round((exp(model_2$coefficients["Bachelor"]) -1) * 100, 2))`% less than men have bachelor’s degree. The penalty associated with education level is statistically significantly (p < .05).
++ Controlling for marriage, race and age, men have high school education earn on average about `r abs(round((exp(model_2$coefficients["Master"]) -1) * 100, 2))`% less than men have master’s degree. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, men have high school education earn on average about `r abs(round((exp(model_2$coefficients["Professional"]) -1) * 100, 2))`% less than men have Professional education. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and age, men have high school education earn on average about `r abs(round((exp(model_2$coefficients["Doctoral"]) -1) * 100, 2))`% less than men have doctor’s degree. The penalty associated with education level is statistically significantly (p < .05). 
++ Controlling for marriage, race and education, men earn on average about `r abs(round((exp(model_2$coefficients["AGEP"]) -1) * 100, 2))`% more as age increases between the age of 18 to 64. The premium associated with age is statistically significantly (p < .05).
++ In our subsample of male, predicted earnings increase at a decreasing rate within the age range of our sample, namely, 18 to 64 years. The average age for maximum earnings is `r abs(round(model_2$coefficients["AGEP"]/(2*model_2$coefficients["I(AGEP * AGEP)"]), 2))`. The coefficients on age and its square are statistically significant.
 
 
 ```{r echo=FALSE, include=FALSE}
