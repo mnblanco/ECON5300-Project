@@ -242,7 +242,7 @@ ss16ppr_male <- ss16ppr %>% filter(Female == 0) %>% select(-Female)
 
 model_1 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_female)
 summary(model_1)
-plot_model(model_1, type = "diag")
+#plot_model(model_1, type = "diag")
 ```
 
 The model for women is robusted:
@@ -268,7 +268,7 @@ The model for women is robusted:
 ```{r}
 model_2 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried  + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_male)
 summary(model_2)
-plot_model(model_2, type = "diag")
+#plot_model(model_2, type = "diag")
 ```
 
 ```{r}
@@ -335,18 +335,87 @@ summaries <-
        "Age:               " = 
          list("Minimum     :" = ~ min(.data$AGEP),
               "Maximum     :" = ~ max(.data$AGEP), 
-               "Median      :" = ~ median(.data$AGEP),
+               "Median     :" = ~ median(.data$AGEP),
               "Mean        :" = ~ mean(.data$AGEP),
               "S.D.        :" = ~ sd(.data$AGEP))
   )
 
 
+summaries1 <-
+  list("PERNP              " =
+         list("Mean        :" = ~ mean(.data$PERNP),
+              "Median      :" = ~ median(.data$PERNP),
+              "S.D.        :" = ~ sd(.data$PERNP)),
+              "Minimum     :" = ~ min(.data$PERNP),
+              "Maximum     :" = ~ max(.data$PERNP),
+       "Log PERNP:         " = 
+         list("Median      :" = ~ median(log(.data$PERNP)),
+              "Mean        :" = ~ mean(log(.data$PERNP)),
+              "S.D.        :" = ~ sd(log(.data$PERNP))),
+              "Minimum     :" = ~ min(log(.data$PERNP)),
+              "Maximum     :" = ~ max(log(.data$PERNP))
+  )
 
 ### Overall
 whole <- (summary_table(dplyr::group_by(ss16ppr, SEX), summaries))
 kable(whole)
 
+
+#whole <- (summary_table(dplyr::group_by(ss16ppr, SEX, SCHL), summaries1))
+kable(whole)
+library(doBy)
+
+library(psych)
 ```
+
+PERP by Gender
+
+```{r}
+ss16ppr1 <- ss16ppr %>% select(PERNP, SEX) 
+d <- describe.by(ss16ppr1$PERNP , ss16ppr1$SEX, mat=TRUE)
+d %>% select(group1, n, mean, median, sd, min, max)
+```
+
+PERP for Female by SCHL
+
+```{r}
+ss16ppr1 <- ss16ppr %>% filter(SEX == "Female") %>% select(PERNP, SCHL) 
+d <- describe.by(ss16ppr1$PERNP , ss16ppr1$SCHL, mat=TRUE, digits=2)
+d %>% select(group1, n, mean, median, sd, min, max)
+write.csv(d %>% select(group1, n, mean, median, sd, min, max), file = "sum-female-schl.csv")
+
+```
+
+PERP for Male by SCHL
+
+```{r}
+ss16ppr1 <- ss16ppr %>% filter(SEX == "Male") %>% select(PERNP, SCHL) 
+d <- describe.by(ss16ppr1$PERNP , ss16ppr1$SCHL, mat=TRUE,digits=2)
+d %>% select(group1, n, mean, median, sd, min, max)
+write.csv(d %>% select(group1, n, mean, median, sd, min, max), file = "sum-male-schl.csv")
+
+```
+
+PERP for Female by MAR
+
+```{r}
+ss16ppr1 <- ss16ppr %>% filter(SEX == "Female") %>% select(PERNP, MAR) 
+d <- describe.by(ss16ppr1$PERNP , ss16ppr1$MAR, mat=TRUE,digits=2)
+d %>% select(group1, n, mean, median, sd, min, max)
+write.csv(d %>% select(group1, n, mean, median, sd, min, max), file = "sum-female-mar.csv")
+
+```
+
+PERP for Male by MAR
+
+```{r}
+ss16ppr1 <- ss16ppr %>% filter(SEX == "Male") %>% select(PERNP, MAR) 
+d <- describe.by(ss16ppr1$PERNP , ss16ppr1$MAR, mat=TRUE,digits=2)
+d %>% select(group1, n, mean, median, sd, min, max)
+write.csv(d %>% select(group1, n, mean, median, sd, min, max), file = "sum-male-mar.csv")
+```
+
+
 
 
 
