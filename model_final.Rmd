@@ -324,15 +324,18 @@ summaries <-
          list("Minimum     :" = ~ min(.data$PERNP),
               "Maximum     :" = ~ max(.data$PERNP), 
               "Mean        :" = ~ mean(.data$PERNP),
+              "Median      :" = ~ median(.data$PERNP),
               "S.D.        :" = ~ sd(.data$PERNP)),
        "Log PERNP:         " = 
          list("Minimum     :" = ~ min(log(.data$PERNP)),
               "Maximum     :" = ~ max(log(.data$PERNP)), 
+              "Median      :" = ~ median(log(.data$PERNP)),
               "Mean        :" = ~ mean(log(.data$PERNP)),
               "S.D.        :" = ~ sd(log(.data$PERNP))),
        "Age:               " = 
          list("Minimum     :" = ~ min(.data$AGEP),
-              "Maximum     ;" = ~ max(.data$AGEP), 
+              "Maximum     :" = ~ max(.data$AGEP), 
+               "Median      :" = ~ median(.data$AGEP),
               "Mean        :" = ~ mean(.data$AGEP),
               "S.D.        :" = ~ sd(.data$AGEP))
   )
