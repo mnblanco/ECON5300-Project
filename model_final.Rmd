@@ -4,11 +4,11 @@ author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 geometry: "left=2cm,right=3cm,top=2cm,bottom=2cm"
 output:
-  pdf_document: default
   html_document:
     toc: true
     toc_float: false
     number_sections: false
+  pdf_document: default
   word_document: default
 ---
 
@@ -253,22 +253,61 @@ summary(model_2)
 plot_model(model_2, type = "diag")
 ```
 
+```{r}
+model_3 <- lm(log(PERNP) ~ Female+ Widowed + Divorced + Separated + NeverMarried  + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr)
+```
+
 
 ```{r echo=FALSE, include=FALSE}
 library(stargazer)
 
 # gather robust standard errors in a list
-rob_se <- list(sqrt(diag(vcovHC(model_1, type = "HC1"))),
+rob_se <- list(sqrt(diag(vcovHC(model_3, type = "HC1"))),
+               sqrt(diag(vcovHC(model_1, type = "HC1"))),
                sqrt(diag(vcovHC(model_2, type = "HC1"))))
 
+#
 # generate a LaTeX table using stargazer
-stargazer(model_1, model_2,
+stargazer(model_3, model_1, model_2,
           type = "latex",
           se = rob_se,
           digits = 3,
           header = F,
-          column.labels = c("Female", "Male"),  
+          title = "Estimated Log (Earnings) Equations by Gender",
+          column.labels = c("", "Female", "Male"),  
           out="Revised_Models.html")
+```
+
+```{r}
+
+options(qwraps2_markup = 'markdown') # default is latex
+orig_opt <- options()$qwraps2_markup
+
+
+summaries <-
+  list("PERNP              " =
+         list("Minimum     :" = ~ min(.data$PERNP),
+              "Maximum     :" = ~ max(.data$PERNP), 
+              "Mean        :" = ~ mean(.data$PERNP),
+              "S.D.        :" = ~ sd(.data$PERNP)),
+       "Log PERNP:         " = 
+         list("Minimum     :" = ~ min(log(.data$PERNP)),
+              "Maximum     :" = ~ max(log(.data$PERNP)), 
+              "Mean        :" = ~ mean(log(.data$PERNP)),
+              "S.D.        :" = ~ sd(log(.data$PERNP))),
+       "Age:               " = 
+         list("Minimum     :" = ~ min(.data$AGEP),
+              "Maximum     ;" = ~ max(.data$AGEP), 
+              "Mean        :" = ~ mean(.data$AGEP),
+              "S.D.        :" = ~ sd(.data$AGEP))
+  )
+
+
+
+### Overall
+whole <- (summary_table(dplyr::group_by(ss16ppr, SEX), summaries))
+kable(whole)
+
 ```
 
 
