@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "Marjorie Blanco"
+date: "2/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+options(scipen=999)
+library(readr)
+library(ggplot2)
+library(readxl)
+```
+
+```{r}
+data <- read_excel("MLD Data File.xls")
+
+data$MARRIED <- as.factor(data$MARRIED)
+data$MALE <- as.factor(data$MALE)
+data$APPROVE <- as.factor(data$APPROVE)
+data$GDLIN <- as.factor(data$GDLIN)
+data$BLACK <- as.factor(data$BLACK)
+data$HISPAN <- as.factor(data$HISPAN)
+
+data$RACE <- ifelse(data$BLACK == 1, "Black", ifelse(data$HISPAN == 1, "Hispanic", "White"))
+
+```
+
+```{r}
+summary(data)
+```
+
+
+```{r}
+
+xtabs(~RACE + APPROVE, data = data)
+xtabs(~MARRIED + APPROVE, data = data)
+
+xtabs(~MARRIED + APPROVE + RACE, data = data)
+
+
+ggplot(data,  aes(RACE)) +
+  geom_histogram(stat="count")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Race")
+
+
+ggplot() +
+  geom_bar(data,  aes(RACE), color = APPROVE)  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Race")
+```
+
