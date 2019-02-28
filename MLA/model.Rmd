@@ -1,0 +1,495 @@
+---
+title: "Labor Market Analysis"
+author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
+subtitle: Exploratory Data Analysis
+geometry: "left=2cm,right=3cm,top=2cm,bottom=2cm"
+output:
+  pdf_document: default
+  html_document:
+    toc: true
+    toc_float: false
+    number_sections: false
+  word_document: default
+---
+
+```{r, echo=FALSE}
+# Course: ECON 5330
+# Title: EDA Assignment
+# Date: Jan 22, 2019
+# Author: Haodi Tu, Majorie Blanco, Joseph Thomson
+```
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+options(scipen=999)
+library(readr)
+library(ggplot2)
+library(mosaic)
+library(dplyr)
+library(kableExtra)
+library(qwraps2)
+library(sjPlot)
+library(lmtest)
+library(sandwich)
+```
+
+
+```{r}
+fun_mean <- function(x){
+  return(data.frame(y=mean(x),label=round(mean(x,na.rm=T), 2)))}
+```
+
+## Data
+
+<!-- https://cran.r-project.org/web/packages/qwraps2/vignettes/summary-statistics.html -->
+
+```{r}
+#read data set
+ss16ppr <- read_csv("csv_ppr/ss16ppr.csv")
+```
+
+```{r}
+#select columns of interest
+ss16ppr <- ss16ppr %>% select(PERNP, SEX, AGEP, RAC1P, RACWHT, RACBLK, HISP, MAR, SCHL, ENG, COW, WKW, WKHP)
+```
+
+```{r}
+#convert to numeric data type
+ss16ppr$WKHP <- as.numeric(ss16ppr$WKHP)
+ss16ppr$PERNP <- as.numeric(ss16ppr$PERNP)
+ss16ppr$AGEP <- as.numeric(ss16ppr$AGEP)
+
+#Filters
+# AGE: Only between 18 and 64 (inclusive) years of age
+ss16ppr <- ss16ppr %>% filter(AGEP >= 18, AGEP <= 64)
+
+# SCHL: High school and above
+#       Combine: 16/17 for High school and 18/19 for Some college
+ss16ppr <- ss16ppr %>% filter(SCHL >= 16) %>% mutate(SCHL = ifelse(SCHL == 17, 16, SCHL)) %>% mutate(SCHL = ifelse(SCHL == 19, 18, SCHL))
+
+# WKW: Only between 50 and 40 hours
+# 1 .50 to 52 weeks worked during past 12 months
+# 2 .48 to 49 weeks worked during past 12 months
+# 3 .40 to 47 weeks worked during past 12 months
+ss16ppr <- ss16ppr %>% filter(between(WKW, 1,3))
+
+# Remove NAs and zero in PERNP
+ss16ppr <- ss16ppr %>% filter(!is.na(PERNP))
+ss16ppr <- ss16ppr %>% filter(PERNP != 0) 
+
+# Remove outlier
+#ss16ppr <-ss16ppr %>% filter(PERNP != max(ss16ppr$PERNP))
+# Restirct class of worker to exclude those working without pay and unemployed
+# Class of worker
+# b N/A (less than 16 years old/NILF who last worked more than 5 years ago or never worked)
+# 1 Employee of a private for-profit company or business, or of an individual, for wages,
+#    salary, or commissions
+# 2 Employee of a private not-for-profit, tax-exempt, or charitable organization
+# 3 Local government employee (city, county, etc.)
+# 4 State government employee
+# 5 Federal government employee
+# 6 Self-employed in own not incorporated business, professional practice, or farm
+# 7 Self-employed in own incorporated business, professional practice or farm
+# 8 Working without pay in family business or farm
+# 9 Unemployed and last worked 5 years ago or earlier or never worked
+ss16ppr <- ss16ppr %>% filter(between(COW, 1, 7))
+
+# WKHP: worked at least 35 hr per week in a usual work week over this period. 
+ss16ppr <- ss16ppr %>% filter(WKHP >= 35)
+ss16ppr <- ss16ppr %>% filter(PERNP < 159000) %>% filter(PERNP >= 10000)
+```
+
+
+```{r}
+# Decode variables of interest
+ss16ppr  <- ss16ppr %>% mutate(Female = ifelse(SEX == 2, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(RACHISP = ifelse(HISP == "01", "Yes", "No"))
+ss16ppr  <- ss16ppr %>% mutate(RaceBlack = RACBLK)
+ss16ppr  <- ss16ppr %>% mutate(RaceOther = ifelse(RACBLK == 1 | RACWHT == 1, 0, 1))
+ss16ppr  <- ss16ppr %>% mutate(RACOTHER = ifelse(RACBLK == 1 | RACWHT == 1, "No", "Yes"))
+ss16ppr  <- ss16ppr %>% mutate(RACWHT = ifelse(RACWHT == 1, "Yes", "No"))
+ss16ppr  <- ss16ppr %>% mutate(RACBLK = ifelse(RACBLK == 1, "Yes", "No"))
+
+
+ss16ppr <- ss16ppr %>% mutate(MAR1 = ifelse(MAR == 1, "Yes", "No"))
+
+#code to decode RAC1P
+ss16ppr <- mutate(ss16ppr, RAC1P = derivedFactor(
+  "White" = RAC1P == 1,
+  "Black or African American" = RAC1P == 2,
+  "American Indian" = RAC1P == 3,
+  "Alaska Native" = RAC1P == 4,
+  "American Indian and Alaska Native" = RAC1P == 5,
+  "Asian" = RAC1P == 6,
+  "Native Hawaiian and Other Pacific Islander" = RAC1P == 7,
+  "Some Other " = RAC1P == 8,
+  "Two or More Races" = RAC1P == 9,
+  method ="first",
+  .default = "NA"
+))
+ss16ppr  <- ss16ppr %>% mutate(Divorced = ifelse(MAR == 3 | MAR == 4, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(NeverMarried = ifelse(MAR == 5, 1, 0))
+
+
+#code to decode MAR2
+ss16ppr <- mutate(ss16ppr, MAR2 = derivedFactor(
+  "Married" = MAR == 1 | MAR == 2,
+  "Divorced" = MAR == 3 | MAR == 4,
+  "Never married" = MAR == 5,
+  method ="first",
+  .default = "NA"
+))
+
+#code to decode MAR
+ss16ppr <- mutate(ss16ppr, MAR = derivedFactor(
+  "Married" = MAR == 1,
+  "Widowed" = MAR == 2,
+  "Divorced" = MAR == 3,
+  "Separated" = MAR == 4,
+  "Never married" = MAR == 5,
+  method ="first",
+  .default = "NA"
+))
+
+
+#Note: 16 .Regular high school diploma
+ss16ppr  <- ss16ppr %>% mutate(SomeCollege = ifelse(SCHL == 18, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Associate = ifelse(SCHL == 20, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Bachelor = ifelse(SCHL == 21, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Master = ifelse(SCHL == 22, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Professional = ifelse(SCHL == 23, 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Doctoral = ifelse(SCHL == 24, 1, 0))
+#code to decode SCHL
+ss16ppr <- mutate(ss16ppr, SCHL = derivedFactor(
+  "High school diploma" = SCHL == "16",
+  "Some college" = SCHL == "18",
+  "Associate's degree" = SCHL == "20",
+  "Bachelor's degree" = SCHL == "21",
+  "Master's degree" = SCHL == "22",
+  "Professional degree" = SCHL == "23",
+  "Doctorate degree" = SCHL == "24",
+  method ="first",
+  .default = "NA"
+))
+# 1 .50 to 52 weeks worked during past 12 months
+# 2 .48 to 49 weeks worked during past 12 months
+# 3 .40 to 47 weeks worked during past 12 months
+#code to decode WKW
+ss16ppr <- mutate(ss16ppr, WKW = derivedFactor(
+  "50 to 52" = WKW == 1,
+  "48 to 49" = WKW == 2,
+  "40 to 47" = WKW == 3,
+  method ="first",
+  .default = "NA"
+))
+
+#code to decode SEX
+ss16ppr <- mutate(ss16ppr, SEX = derivedFactor(
+  "Male" = SEX == 1,
+  "Female" = SEX == 2,
+  method ="first",
+  .default = "NA"
+))
+```
+
+```{r}
+#head(ss16ppr %>% arrange(PERNP), 90)
+#head(ss16ppr %>% arrange(desc(WKHP)), 90)
+# ggplot(ss16ppr %>% filter(COW == 6),  aes(PERNP)) +
+#   geom_histogram(bins = 15)  +
+#   theme_minimal() + 
+#   theme(axis.text.x = element_text(vjust = 1, 
+#                                    size = 12, hjust = 1)) +
+#   xlab("")
+```
+
+We used data from the 2016 ACS for Puerto Rico to examine wage gaps between individuals with different education levels. Our research questions are:
+1) How do earnings vary by education level?
+2) How does the premium for education vary by gender?
+The 2016 ACS is a nationally representative sample of `r nrow(ss16ppr)`. The household survey includes questions pertaining to each household member’s demographic characteristics and labor market activity. 
+
+We restrict our sample to these three racial groups: White, Black and Other. In addition, given our goal of examining earning differences by gender and marital status and the reporting of earnings in the ACS on an annual basis (wages, salary, commissions, bonuses, tips, and self-employment income during the past 12 months), we restrict our sample to full-time year-round (FTYR) workers. We define FTYR workers as individuals who report positive earnings over the past year, who worked at least 40 of the past 52 weeks, and who worked at least 35 hours per week in a usual work week over this period. 
+
+## EDA Insights: 
+
+For our exploratory analysis we looked at population breakdowns by education, age,  marital status, gender, race, earnings, and work hours. We applied filters on education (HS diploma or above), age (18-64), and work hours (>35/week). 
+
+An earnings histogram identified a default maximum amount of earnings (189k) which we also filtered out of the data. The earning distribution is progressive above the median, but drops off sharply below the median, likely indicating the presence of a minimum wage. The correlation between age and earnings is very weak (.23). Likewise, earnings is very weakly correlated with hours worked among those who work more than 35 hours per week. However, white individuals appear to have an earnings premium over other races, and both married and divorced individuals appear to have an earnings premium over those who have never been married. Given that the correlation between age and earnings was weak, this may be due to other qualitative factors possessed by those who get married.  Married was recategoried to married, divorced and never married.  Men also appear to earn a small premium over women.
+
+The age distribution of full time workers is skewed towards older adults, possibly indicating that younger workers have trouble finding full-time work, wait to enter the workforce, or are leaving the territory.
+
+
+
+## Preliminary Econometric Estimates
+
+### First Model
+
+$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
+
+$SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$
+
+```{r}
+model_1 <- lm(PERNP ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
+summary(model_1)
+plot_model(model_1, type = "diag")
+```
+
+### First Model log
+
+```{r}
+model_1 <- lm(log(PERNP) ~ Divorced + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
+summary(model_1)
+plot_model(model_1, type = "diag")
+
+#Conduct BPG Test
+bptest(model_1)
+bptestequation = lm(residuals(model_1)*residuals(model_1) ~ Divorced + NeverMarried + Female + 
+                      RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + 
+                      Professional + Doctoral + AGEP, data=ss16ppr)
+summary(bptestequation) #note: BP = n*RSquared of model with squared residuals as dependent variable 
+
+#Generate the Variance Covariance Matrix of the Parameter Estimates
+vcovHC(model_1, type = "HC") #the diagonal elements are the variances of the parameter estimates
+
+#Generate the Robust standard errors and print them on screen 
+sandwich_se <- diag(vcovHC(model_1, type = "HC"))^0.5
+sandwich_se
+
+#Estimate Logarithmic Model with Age in Quadratic Form
+LogModel_1 = lm(log(PERNP, base = exp(1)) ~ Divorced + NeverMarried + Female + RaceBlack + 
+                  RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + 
+                  Doctoral + AGEP, data=ss16ppr)
+
+summary(LogModel_1)
+
+plot_model(LogModel_1, type = "diag")
+```
+
+
+
++ Coefficients Explanation 
+    + Holding gender, race, education and age constant, married or widowed people makes $`r abs(round(model_1$coefficients["Divorced"], 2))` more than people who divorced or separated on average.
+    + Holding gender, race, education and age constant, married or widowed people makes $`r abs(round(model_1$coefficients["NeverMarried"], 2))` more than people who never married on average.
+    + Holding marriage, race, education and age constant, male makes $`r abs(round(model_1$coefficients["Female"], 2))` more than female on average.
+    + Holding marriage, gender, education and age constant, White makes $`r abs(round(model_1$coefficients["RaceBlack"], 2))` more than Black on average.
+    + Holding marriage, gender, education and age constant, White makes $`r abs(round(model_1$coefficients["RaceOther"], 2))` more than Other race on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["SomeCollege"], 2))` less than people have some college education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Associate"], 2))` less than people have associate education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Bachelor"], 2))` less than people have bachelor’s degree on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Master"], 2))` less than people have master’s degree on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Professional"], 2))` less than people have Professional education on average.
+    + Holding marriage, gender, race and age constant, people have high school education makes $`r abs(round(model_1$coefficients["Doctoral"], 2))` less than people have doctor’s degree on average.
+    + Holding marriage, gender, race and education constant, people make $`r abs(round(model_1$coefficients["AGEP"], 2))` more as age increases on average between the age of 18 to 64.
+
+
+### First Model Updated
+
+$Earning = \beta_0 + Divorced * \beta_1 + NeverMarried * \beta_2 + Female * \beta_3 + RaceBlack * \beta_4 + RaceOther * \beta_5 +$ 
+
+$SomeCollege * \beta_6 + Associate * \beta_7 + Bachelor * \beta_8 + Master * \beta_9 + Professional * \beta_10 + Doctoral * \beta_11 + Age * \beta_12$
+
+```{r}
+ss16ppr  <- ss16ppr %>% mutate(Widowed = ifelse(MAR == "Widowed", 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Divorced = ifelse(MAR == "Divorced", 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(Separated = ifelse(MAR == "Separated", 1, 0))
+ss16ppr  <- ss16ppr %>% mutate(NeverMarried = ifelse(MAR == "Never married", 1, 0))
+
+
+model_1 <- lm(PERNP ~ Widowed + Divorced + Separated + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
+summary(model_1)
+plot_model(model_1, type = "diag")
+```
+
+### First Model log Updated
+
+```{r}
+model_1 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP, data = ss16ppr)
+summary(model_1)
+plot_model(model_1, type = "diag")
+
+#Conduct BPG Test
+bptest(model_1)
+bptestequation = lm(residuals(model_1)*residuals(model_1) ~ Widowed + Divorced + Separated +
+                      NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + 
+                      Bachelor + Master + Professional + Doctoral + AGEP, data=ss16ppr)
+summary(bptestequation) #note: BP = n*RSquared of model with squared residuals as dependent variable 
+
+#Generate the Variance Covariance Matrix of the Parameter Estimates
+vcovHC(model_1, type = "HC") #the diagonal elements are the variances of the parameter estimates
+
+#Generate the Robust standard errors and print them on screen 
+sandwich_se <- diag(vcovHC(model_1, type = "HC"))^0.5
+sandwich_se
+
+#Estimate Logarithmic Model with Age in Quadratic Form
+LogModel_1 = lm(log(PERNP, base = exp(1)) ~ Widowed + Divorced + Separated +
+                      NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + 
+                      Bachelor + Master + Professional + Doctoral + AGEP, data=ss16ppr)
+
+summary(LogModel_1)
+
+plot_model(LogModel_1, type = "diag")
+```
+
+```{r}
+model_1 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr)
+summary(model_1)
+plot_model(model_1, type = "diag")
+
+#Conduct BPG Test
+bptest(model_1)
+bptestequation = lm(residuals(model_1)*residuals(model_1) ~ Widowed + Divorced + Separated +
+                      NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + 
+                      Bachelor + Master + Professional + Doctoral + AGEP+ I(AGEP * AGEP), data=ss16ppr)
+summary(bptestequation) #note: BP = n*RSquared of model with squared residuals as dependent variable 
+
+#Generate the Variance Covariance Matrix of the Parameter Estimates
+vcovHC(model_1, type = "HC") #the diagonal elements are the variances of the parameter estimates
+
+#Generate the Robust standard errors and print them on screen 
+sandwich_se <- diag(vcovHC(model_1, type = "HC"))^0.5
+sandwich_se
+
+#Estimate Logarithmic Model with Age in Quadratic Form
+LogModel_1 = lm(log(PERNP, base = exp(1)) ~ Widowed + Divorced + Separated +
+                      NeverMarried + Female + RaceBlack + RaceOther + SomeCollege + Associate + 
+                      Bachelor + Master + Professional + Doctoral + AGEP, data=ss16ppr)
+
+summary(LogModel_1)
+
+plot_model(LogModel_1, type = "diag")
+```
+
+### Stratified Model Gender
+
+### Gender: Female
+
+```{r}
+ss16ppr_female <- ss16ppr %>% filter(Female == 1) %>% select(-Female)
+ss16ppr_male <- ss16ppr %>% filter(Female == 0) %>% select(-Female)
+
+model_1_1 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_female)
+summary(model_1_1)
+plot_model(model_1_1, type = "diag")
+```
+
+### Gender: Male
+
+```{r}
+model_1_2 <- lm(log(PERNP) ~ Widowed + Divorced + Separated + NeverMarried  + RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_male)
+summary(model_1_2)
+plot_model(model_1_2, type = "diag")
+```
+
+
+### Stratified Model Gender and Marital Status
+
+```{r}
+ss16ppr_female_married <- ss16ppr %>% filter(MAR2 == "Married") %>% filter(SEX == "Female")
+model_1_3 <- lm(log(PERNP) ~ RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_female_married)
+summary(model_1_3)
+plot_model(model_1_3, type = "diag")
+```
+
+
+```{r}
+ss16ppr_male__married <- ss16ppr %>% filter(MAR2 == "Married") %>% filter(SEX == "Male")
+model_1_4 <- lm(log(PERNP) ~ RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_male__married)
+summary(model_1_4)
+plot_model(model_1_4, type = "diag")
+```
+
+
+```{r}
+ss16ppr_female_not_married <- ss16ppr %>% filter(MAR2 != "Married") %>% filter(SEX == "Female")
+model_1_5 <- lm(log(PERNP) ~  RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_female_not_married)
+summary(model_1_5)
+plot_model(model_1_5, type = "diag")
+```
+
+
+```{r}
+ss16ppr_male__not_married <- ss16ppr %>% filter(MAR2 != "Married") %>% filter(SEX == "Male")
+model_1_6 <- lm(log(PERNP) ~ RaceBlack + RaceOther + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral + AGEP + I(AGEP * AGEP), data = ss16ppr_male__not_married)
+summary(model_1_6)
+plot_model(model_1_6, type = "diag")
+```
+
+### Second Model
+
+$Earning = \beta_0 + Female * \beta_1 + SomeCollege * \beta_2 + Associate * \beta_3 + Bachelor * \beta_4 +$
+
+$Master * \beta_5 + Professional * \beta_6 + Doctoral * \beta_7$
+
+
+```{r}
+model_2 <-lm(PERNP ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data = ss16ppr)
+summary(model_2)
+plot_model(model_2, type = "diag")
+```
+
+### Second Model log
+
+```{r}
+model_2 <-lm(log(PERNP) ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data = ss16ppr)
+summary(model_2)
+plot_model(model_2, type = "diag")
+
+#Conduct BPG Test
+bptest(model_2)
+bptestequation = lm(residuals(model_2)*residuals(model_2) ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data=ss16ppr)
+summary(bptestequation) #note: BP = n*RSquared of model with squared residuals as dependent variable 
+
+#Generate the Variance Covariance Matrix of the Parameter Estimates
+vcovHC(model_2, type = "HC") #the diagonal elements are the variances of the parameter estimates
+
+#Generate the Robust standard errors and print them on screen 
+sandwich_se <- diag(vcovHC(model_2, type = "HC"))^0.5
+sandwich_se
+
+#Estimate Logarithmic Model with Age in Quadratic Form
+LogModel_2 = lm(log(PERNP, base = exp(1)) ~ Female + SomeCollege + Associate + Bachelor + Master + Professional + Doctoral, data=ss16ppr)
+
+summary(LogModel_2)
+
+plot_model(LogModel_2, type = "diag")
+```
+
++ Coefficients Explanation
+    + Holding education constant, male makes $`r abs(round(model_1$coefficients["Female"], 2))` more than female on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["SomeCollege"], 2))` less than people have some college education on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Associate"], 2))` less than people have associate education on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Bachelor"], 2))` less than people have bachelor’s degree on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Master"], 2))` less than people have master’s degree on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Professional"], 2))` less than people have Professional education on average.
+    + Holding gender constant, people have high school education makes $`r abs(round(model_1$coefficients["Doctoral"], 2))` less than people have doctor’s degree on average.
+    
+
+
+
+
+```{r echo=FALSE, include=FALSE}
+library(stargazer)
+
+# gather robust standard errors in a list
+rob_se <- list(sqrt(diag(vcovHC(model_1_1, type = "HC1"))),
+               sqrt(diag(vcovHC(model_1_2, type = "HC1"))),
+               sqrt(diag(vcovHC(model_1_3, type = "HC1"))),
+               sqrt(diag(vcovHC(model_1_4, type = "HC1"))),
+               sqrt(diag(vcovHC(model_1_5, type = "HC1"))),
+               sqrt(diag(vcovHC(model_1_6, type = "HC1"))))
+
+# generate a LaTeX table using stargazer
+stargazer(model_1_1, model_1_2, model_1_3, model_1_4, model_1_5, model_1_6,
+          type = "latex",
+          se = rob_se,
+          digits = 3,
+          header = F,
+          column.labels = c("(I) Female", "(II) Male", "(III) Female Married", "(IV) Married Male", "(V) Unmarried Female", "(VI) Unmarried Male"),  
+          out="Revised_Models.html")
+```
+
+
+
+
