@@ -1,25 +1,40 @@
 ---
-title: "Untitled"
-author: "Marjorie Blanco"
-date: "2/27/2019"
+title: "Lending Mortage Analysis"
+author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
+subtitle: Exploratory Data Analysis
+geometry: "left=2cm,right=3cm,top=2cm,bottom=2cm"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 options(scipen=999)
 library(readr)
 library(ggplot2)
 library(readxl)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(purrr)
+library(ggthemes)
+
 ```
 
 ```{r}
-data <- read_excel("MLD Data File.xls")
+data <- read_excel("MLD/MLD Data File.xls")
+
+data <- tibble::rowid_to_column(data, "ID")
+data$RACE <- ifelse(data$BLACK == 1, "non-Hispanic Black", ifelse(data$HISPAN == 1, "Hispanic", "non-Hispanic White"))
+
+
+data  <- data %>% mutate(MARRIED = ifelse(MARRIED == 1, "Yes", ifelse(MARRIED == 0, "No", "Unknown")))
+data  <- data %>% mutate(BLACK = ifelse(BLACK == 1, "Yes", ifelse(BLACK == 0, "No", "Unknown")))
+data  <- data %>% mutate(HISPAN = ifelse(HISPAN == 1, "Yes", ifelse(HISPAN == 0, "No", "Unknown")))
+data  <- data %>% mutate(APPROVE = ifelse(APPROVE == 1, "Yes", ifelse(APPROVE == 0, "No", "Unknown")))
+data  <- data %>% mutate(MALE = ifelse(MALE == 1, "Yes", ifelse(MALE == 0, "No", "Unknown")))
+data$LOANPRC <- data$LOANPRC * 100
 
 data$MARRIED <- as.factor(data$MARRIED)
 data$MALE <- as.factor(data$MALE)
@@ -28,20 +43,235 @@ data$GDLIN <- as.factor(data$GDLIN)
 data$BLACK <- as.factor(data$BLACK)
 data$HISPAN <- as.factor(data$HISPAN)
 
-data$RACE <- ifelse(data$BLACK == 1, "Black", ifelse(data$HISPAN == 1, "Hispanic", "White"))
+data$RACE <- as.factor(data$RACE)
+data1 <- data
 
+colnames(data1) <- c("ID", "Married", "Meet credit history guidelines",  "Other obligations as a percent of total income", "non-Hispanic Black",  "Hispanic", "Male", "Mortgage loan approved", "Loan amount/purchase price", "Race")
+
+```
+The data set contains `r nrow(data)` records.  The overall descriptive statistics:
+
+```{r}
+summary(data1[,2:10])
+```
+```{r}
+data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$RACE) %>% map(summary)
+```
+```{r}
+ggplot(data,  aes(OBRAT)) +
+  geom_histogram(binwidth = 1)  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  facet_grid(RACE ~ ., scales="free")
+
+
+
+data1 <- data
+
+data1$OBRAT<-cut(data1$OBRAT, seq(0,95,1))
+data1$LOANPRC<-cut(data1$LOANPRC, seq(0,260,5))
+
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(RACE == "Hispanic"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(RACE == "non-Hispanic Black"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(RACE == "non-Hispanic White"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MALE == "Yes"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MALE == "No"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MARRIED == "Yes"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MARRIED == "No"),  aes(x = OBRAT, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
 ```
 
 ```{r}
-summary(data)
+ggplot() +
+  geom_bar(data = data1 %>% filter(RACE == "Hispanic"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(RACE == "non-Hispanic Black"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(RACE == "non-Hispanic White"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MALE == "Yes"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MALE == "No"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MARRIED == "Yes"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+
+ggplot() +
+  geom_bar(data = data1 %>% filter(MARRIED == "No"),  aes(x = LOANPRC, fill = APPROVE), position = "fill")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Other obligations as a percent of total income") +
+  scale_y_continuous("Percent") +
+  scale_fill_manual(values = c("red", "green")) +
+  #facet_grid(RACE ~ ., scales="free") +
+  theme(legend.position="bottom")
+```
+
+```{r}
+data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$MARRIED) %>% map(summary)
+```
+
+```{r}
+ggplot(data,  aes(RACE)) +
+  geom_histogram(stat="count")  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Race")
+```
+
+```{r}
+data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$MALE) %>% map(summary)
 ```
 
 
-```{r}
+There are 3 records are missing married (MARRIED) field.
 
+```{r}
+kable(data %>% filter(MARRIED == "."))
+```
+
+There are 3 records are missing married (GDLIN) field.
+
+```{r}
+kable(data %>% filter(GDLIN == "666"))
+```
+
+There are 15 records are missing gender (MALE) field.
+
+```{r}
+kable(data %>% filter(MALE == "."))
+```
+
+```{r}
 xtabs(~RACE + APPROVE, data = data)
 xtabs(~MARRIED + APPROVE, data = data)
-
 xtabs(~MARRIED + APPROVE + RACE, data = data)
 
 
@@ -51,13 +281,19 @@ ggplot(data,  aes(RACE)) +
   theme(axis.text.x = element_text(angle = 0, vjust = 1, 
                                    size = 12, hjust = 1)) + 
   xlab("Race")
+```
+
+```{r}
+t1 <- theme_tufte() + theme(axis.text.x = element_text( hjust = 1)) #angle = 90,
+
+c <- ggplot(data, aes(y = LOANPRC)) + t1
+
+c + geom_boxplot(aes(x=RACE, color=RACE), trim = FALSE)
+c + geom_boxplot(aes(x=MARRIED, color=RACE), trim = FALSE)
+c + geom_boxplot(aes(x=MALE, color=RACE), trim = FALSE)
 
 
-ggplot() +
-  geom_bar(data,  aes(RACE), color = APPROVE)  +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
-                                   size = 12, hjust = 1)) + 
-  xlab("Race")
+c + geom_boxplot(aes(x=RACE, color=APPROVE), trim = FALSE)
+
 ```
 
