@@ -1,13 +1,13 @@
 ---
 title: "Lending Mortage Analysis"
-author: "Marjorie Blanco, Joe Thomson, Haodi Tu"
+author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 subtitle: Exploratory Data Analysis
 geometry: "left=2cm,right=3cm,top=2cm,bottom=2cm"
 output: html_document
 ---
 
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, echo=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 options(scipen=999)
@@ -19,11 +19,12 @@ library(dplyr)
 library(tidyverse)
 library(purrr)
 library(ggthemes)
-
 ```
 
 ```{r}
 data <- read_excel("MLD/MLD Data File.xls")
+
+#data <- read_excel("MLD Data File.xls")
 
 data <- tibble::rowid_to_column(data, "ID")
 data$RACE <- ifelse(data$BLACK == 1, "non-Hispanic Black", ifelse(data$HISPAN == 1, "Hispanic", "non-Hispanic White"))
@@ -54,9 +55,13 @@ The data set contains `r nrow(data)` records.  The overall descriptive statistic
 ```{r}
 summary(data1[,2:10])
 ```
+
+Descriptive statistics by Race:
+
 ```{r}
-data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$RACE) %>% map(summary)
+data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$RACE) %>% map(summary) 
 ```
+
 ```{r}
 ggplot(data,  aes(OBRAT)) +
   geom_histogram(binwidth = 1)  +
@@ -115,7 +120,7 @@ ggplot() +
   xlab("Other obligations as a percent of total income") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MALE ~ ., scales="free", labeller = as_labeller(c(Yes = "Male"))) +
   theme(legend.position="bottom")
 
 ggplot() +
@@ -126,8 +131,8 @@ ggplot() +
   xlab("Other obligations as a percent of total income") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
-  theme(legend.position="bottom")
+  facet_grid(MALE ~ ., scales="free", labeller = as_labeller(c(No = "Female"))) +
+  theme(legend.position="bottom") 
 
 
 ggplot() +
@@ -138,7 +143,7 @@ ggplot() +
   xlab("Other obligations as a percent of total income") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MARRIED ~ ., scales="free", labeller = as_labeller(c(Yes = "Married"))) +
   theme(legend.position="bottom")
 
 ggplot() +
@@ -149,7 +154,7 @@ ggplot() +
   xlab("Other obligations as a percent of total income") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MARRIED ~ ., scales="free", labeller = as_labeller(c(No = "Not Married"))) +
   theme(legend.position="bottom")
 ```
 
@@ -159,7 +164,7 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
   facet_grid(RACE ~ ., scales="free") +
@@ -170,7 +175,7 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
   facet_grid(RACE ~ ., scales="free") +
@@ -181,7 +186,7 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
   facet_grid(RACE ~ ., scales="free") +
@@ -192,10 +197,10 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MALE ~ ., scales="free", labeller = as_labeller(c(Yes = "Male"))) +
   theme(legend.position="bottom")
 
 ggplot() +
@@ -203,10 +208,10 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MALE ~ ., scales="free", labeller = as_labeller(c(No = "Female"))) +
   theme(legend.position="bottom")
 
 
@@ -215,10 +220,10 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MARRIED ~ ., scales="free", labeller = as_labeller(c(Yes = "Married"))) +
   theme(legend.position="bottom")
 
 ggplot() +
@@ -226,25 +231,20 @@ ggplot() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 1, 
                                    size = 12, hjust = 1)) + 
-  xlab("Other obligations as a percent of total income") +
+  xlab("Loan amount/purchase price %") +
   scale_y_continuous("Percent") +
   scale_fill_manual(values = c("red", "green")) +
-  #facet_grid(RACE ~ ., scales="free") +
+  facet_grid(MARRIED ~ ., scales="free", labeller = as_labeller(c(No = "Not Married"))) +
   theme(legend.position="bottom")
 ```
+
+Descriptive statistics by Marital Status:
 
 ```{r}
 data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$MARRIED) %>% map(summary)
 ```
 
-```{r}
-ggplot(data,  aes(RACE)) +
-  geom_histogram(stat="count")  +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
-                                   size = 12, hjust = 1)) + 
-  xlab("Race")
-```
+Descriptive statistics by Gender:
 
 ```{r}
 data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$MALE) %>% map(summary)
@@ -254,29 +254,64 @@ data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$MALE) %>% map(summary)
 There are 3 records are missing married (MARRIED) field.
 
 ```{r}
-kable(data %>% filter(MARRIED == "."))
+kable(data %>% filter(MARRIED == "Unknown"))  %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 There are 3 records are missing married (GDLIN) field.
 
 ```{r}
-kable(data %>% filter(GDLIN == "666"))
+kable(data %>% filter(GDLIN == "666"))  %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 There are 15 records are missing gender (MALE) field.
 
 ```{r}
-kable(data %>% filter(MALE == "."))
+kable(data %>% filter(MALE == "Unknown"))  %>%
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ```{r}
 xtabs(~RACE + APPROVE, data = data)
-xtabs(~MARRIED + APPROVE, data = data)
-xtabs(~MARRIED + APPROVE + RACE, data = data)
 
 
 ggplot(data,  aes(RACE)) +
-  geom_histogram(stat="count")  +
+  geom_bar()  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Race")
+```
+
+```{r}
+xtabs(~MARRIED + APPROVE, data = data)
+
+ggplot(data,  aes(MARRIED)) +
+  geom_bar()  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Married")
+```
+
+```{r}
+xtabs(~MALE + APPROVE, data = data)
+
+ggplot(data,  aes(MALE)) +
+  geom_bar()  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Male")
+```
+
+```{r}
+xtabs(~MARRIED + APPROVE + RACE, data = data)
+
+
+ggplot(data,  aes(RACE, fill = MALE)) +
+  geom_bar()  +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 0, vjust = 1, 
                                    size = 12, hjust = 1)) + 
@@ -291,9 +326,174 @@ c <- ggplot(data, aes(y = LOANPRC)) + t1
 c + geom_boxplot(aes(x=RACE, color=RACE), trim = FALSE)
 c + geom_boxplot(aes(x=MARRIED, color=RACE), trim = FALSE)
 c + geom_boxplot(aes(x=MALE, color=RACE), trim = FALSE)
-
-
 c + geom_boxplot(aes(x=RACE, color=APPROVE), trim = FALSE)
 
+```
+
+```{r}
+data <- read_excel("MLD/MLD Data File.xls")
+```
+
+```{r}
+data$MARRIED <- NULL 
+data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666")
+data$LOANPRC <- data$LOANPRC * 100
+data$GDLIN <- as.factor(data$GDLIN)
+
+data$MALE <- as.factor(data$MALE)
+data$APPROVE <- as.factor(data$APPROVE)
+data$BLACK <- as.factor(data$BLACK)
+data$HISPAN <- as.factor(data$HISPAN)
+
+mylogit <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + MALE + LOANPRC , data = data, family = "binomial")
+mylogit
+```
+
+```{r}
+confint(mylogit)
+confint.default(mylogit)
+exp(coef(mylogit))
+exp(cbind(OR = coef(mylogit), confint(mylogit)))
+
+```
+
+```{r}
+#newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = 86.05))
+
+# non-White Black Male
+data1 <- data %>% filter(BLACK == 1 & MALE == 1) %>% select(LOANPRC)
+x <- mean(data1$LOANPRC)
+summary(data %>% filter(BLACK == 1 & MALE == 1)  %>% select(LOANPRC))
+newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(1), LOANPRC = x))
+  
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+    size = 1)
+    
+
+# non-White Black Female
+data1 <- data %>% filter(BLACK == 1 & MALE == 0) %>% select(LOANPRC)
+x <- mean(data1$LOANPRC)
+summary(data %>% filter(BLACK == 1 & MALE == 0)  %>% select(LOANPRC))
+
+newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(0), LOANPRC = x))
+
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+    size = 1)
+    
+# non-White Hispanic Male
+data1 <- data %>% filter(HISPAN == 1 & MALE == 1) %>% select(LOANPRC)
+x <- mean(data1$LOANPRC)
+summary(data %>% filter(HISPAN == 1 & MALE == 1)  %>% select(LOANPRC))
+newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(1), LOANPRC = x))
+  
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+    size = 1)
+    
+# non-White Hispanic Female
+data1 <- data %>% filter(HISPAN == 1 & MALE == 0) %>% select(LOANPRC)
+x <- mean(data1$LOANPRC)
+summary(data %>% filter(HISPAN == 1 & MALE == 0)  %>% select(LOANPRC))
+newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(0), LOANPRC = x))
+
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+    size = 1)
+
+# White Male
+data1 <- data %>% filter(BLACK == 0 & HISPAN == 0 & MALE == 1) %>% select(LOANPRC)
+x <- mean(data1$LOANPRC)
+summary(data %>% filter(BLACK == 0 & HISPAN == 0  & MALE == 1)  %>% select(LOANPRC))
+newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(1), LOANPRC = x))
+  
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+    size = 1)
+    
+
+# White Female
+data1 <- data %>% filter(BLACK == 0 & HISPAN == 0  & MALE == 0) %>% select(LOANPRC)
+x <- mean(data1$LOANPRC)
+summary(data %>% filter(BLACK == 0 & HISPAN == 0  & MALE == 0)  %>% select(LOANPRC))
+
+#newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(0), LOANPRC = x))
+
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+    size = 1)
+  
+
+# data1 <- data %>% filter(BLACK == 1 & MALE == 0) %>% select(LOANPRC)
+# x <- mean(data1$LOANPRC)
+# x
+# data1 <- data %>% filter(BLACK == 1 & MALE == 1) %>% select(LOANPRC)
+# x <- mean(data1$LOANPRC)
+# x
+# 
+# data1 <- data %>% filter(BLACK == 1) %>% select(LOANPRC)
+# x <- mean(data1$LOANPRC)
+# x
+
+# summary(data %>% filter(BLACK == 1 & MALE == 0)  %>% select(LOANPRC))
+# newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96*2)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = x))
+#   
+# newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+# newdata3 <- within(newdata3, {
+#     PredictedProb <- plogis(fit)
+#     LL <- plogis(fit - (1.96 * se.fit))
+#     UL <- plogis(fit + (1.96 * se.fit))
+# })
+# 
+# ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+#     ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
+#     size = 1)
+# 
+# ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) +
+#   #geom_ribbon(aes(ymin = LL, ymax = UL, fill = MALE), alpha = 0.2) + 
+#   geom_line(aes(colour = MALE), size = 1)
 ```
 
