@@ -374,7 +374,7 @@ log(p/1-p) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5
 data1 <- data %>% filter(MARRIED != ".")
 data1$MARRIED <- relevel(data1$MARRIED, "0")
 
-mylogit0 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + MALE + LOANPRC + MARRIED , data = data1, family = "binomial")
+mylogit0 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC + MARRIED + MALE , data = data1, family = "binomial")
 mylogit0
 ```
 
@@ -408,7 +408,7 @@ pR2(mylogit0)  # look for 'McFadden'
 ## Logistic Regression Reduced Model 1
 
 ```{r}
-mylogit1 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + MARRIED + LOANPRC , data = data1, family = "binomial")
+mylogit1 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC + MARRIED , data = data1, family = "binomial")
 mylogit1
 regTermTest(mylogit1, "GDLIN")
 regTermTest(mylogit1, "OBRAT")
@@ -454,13 +454,6 @@ exp(coef(mylogit1))
 
 ```{r}
 exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-```
-
-### Model comparison
-
-```{r}
-anova(mylogit0, mylogit1, test ="Chisq")
-lrtest(mylogit0, mylogit1)
 ```
 
 ## Logistic Regression Reduced Model 2
@@ -509,11 +502,11 @@ exp(coef(mylogit2))
 exp(cbind(OR = coef(mylogit2), confint(mylogit2)))
 ```
 
-### Model comparison
+## Model comparison
 
 ```{r}
-anova(mylogit0, mylogit2, test ="Chisq")
-lrtest(mylogit0, mylogit2)
+anova(mylogit0, mylogit1, mylogit2, test ="Chisq")
+lrtest(mylogit0, mylogit1, mylogit2)
 ```
 
 ```{r}
@@ -760,7 +753,7 @@ ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) +
 ## Probit Regression Full Model
 
 ```{r}
-myprobit0 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + MALE + LOANPRC + MARRIED, data = data1, family = binomial(link = "probit"))
+myprobit0 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC + MARRIED + MALE, data = data1, family = binomial(link = "probit"))
 myprobit0
 ```
 
@@ -779,15 +772,10 @@ regTermTest(myprobit0, "MARRIED")
 ## Probit Regression Reduced Model 1
 
 ```{r}
-myprobit1 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + MARRIED + LOANPRC , data = data1, family = binomial(link = "probit"))
+myprobit1 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN  + LOANPRC + MARRIED, data = data1, family = binomial(link = "probit"))
 myprobit1
 varImp(myprobit1)
 pR2(myprobit1)  # look for 'McFadden'
-```
-
-```{r}
-anova(myprobit0, myprobit1, test ="Chisq")
-lrtest(myprobit0, myprobit1)
 ```
 
 ## Probit Regression Reduced Model 2
@@ -799,9 +787,11 @@ varImp(myprobit2)
 pR2(myprobit2)  # look for 'McFadden'
 ```
 
+## Model comparison
+
 ```{r}
-anova(myprobit0, myprobit2, test ="Chisq")
-lrtest(myprobit0, myprobit2)
+anova(myprobit0, myprobit1, myprobit2, test ="Chisq")
+lrtest(myprobit0, myprobit1, myprobit2)
 ```
 
 <!-- ## Probit Regression Reduced Model 3 -->
