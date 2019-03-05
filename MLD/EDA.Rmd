@@ -27,7 +27,6 @@ library(survey)
 library(caret)
 library(pscl)
 library(survey)
-
 ```
 
 ```{r}
@@ -353,6 +352,7 @@ data <- read_excel("MLD/MLD Data File.xls")
 ```{r}
 #data <- read_excel("MLD Data File.xls")
 ```
+
 ```{r}
 data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666")
 data$LOANPRC <- data$LOANPRC * 100
@@ -520,9 +520,9 @@ newdata22 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT =
 newdata23 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
 
 
-newdata24 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT))
-newdata25 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT))
-newdata26 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT))
+newdata24 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
+newdata25 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
+newdata26 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
 
 
 newdata31 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
@@ -530,224 +530,9 @@ newdata32 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = 
 newdata33 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
 
 
-newdata34 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(1), HISPAN = factor(0), OBRAT = AVG_OBRAT))
-newdata35 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(1), OBRAT = AVG_OBRAT))
-newdata36 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(0), OBRAT = AVG_OBRAT))
-```
-
-```{r eval=FALSE}     
-# non-Hispanic Black Male
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(1), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic Black Male Predicted probabilities")
-
-
-# non-Hispanic Black Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(0), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic Black Female Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# Hispanic Male
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(1), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("Hispanic Male Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# Hispanic Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(0), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("Hispanic Female Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# White Male
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(1), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
-                                                                      ymax = UL, fill = GDLIN), alpha = 0.2) + geom_line(aes(colour = GDLIN),
-                                                                                                                         size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic White Male Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# White Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(0), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic White Female Predicted probabilities")
-```
-
-
-```{r eval=FALSE}     
-# non-Hispanic Black Male
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(1), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic Black Male Predicted probabilities")
-
-
-# non-Hispanic Black Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(0), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic Black Female Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# Hispanic Male
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(1), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("Hispanic Male Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# Hispanic Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(1), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("Hispanic Female Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# White Male
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(1), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) +
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic White Male Predicted probabilities")
-```
-
-```{r eval=FALSE}     
-# White Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(0), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
-newdata3 <- within(newdata3, {
-  PredictedProb <- plogis(fit)
-  LL <- plogis(fit - (1.96 * se.fit))
-  UL <- plogis(fit + (1.96 * se.fit))
-})
-
-ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
-  geom_ribbon(aes(ymin = LL, ymax = UL, fill = GDLIN), alpha = 0.2) +
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic White Female Predicted probabilities")
+newdata34 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
+newdata35 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
+newdata36 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
 ```
 
 ## Probit Regression Full Model
@@ -823,164 +608,16 @@ lrtest(myprobit0, myprobit1, myprobit2)
 <!-- ``` -->
 
 
-```{r eval=FALSE}
-# non-Hispanic Black Male/Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
-newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
-newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
 
-ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
-  geom_line(aes(colour = MALE), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic Black Predicted probabilities") + 
-  facet_grid(GDLIN ~ .) +
-  ylab("PredictedProb")
+## Logit Prediction
 
-
-ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic Black Predicted probabilities") + 
-  facet_wrap(MALE ~ .) +
-  ylab("PredictedProb")
-```
-
-```{r eval=FALSE}
-# Hispanic Male/Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
-newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
-newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
-
-ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
-  geom_line(aes(colour = MALE), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("Hispanic Predicted probabilities") + 
-  facet_grid(GDLIN ~ .) +
-  ylab("PredictedProb")
-
-
-ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("Hispanic Predicted probabilities") + 
-  facet_wrap(MALE ~ .) +
-  ylab("PredictedProb")
-```
-
-```{r eval=FALSE}
-# White Male/Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
-newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
-newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
-newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
-
-ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
-  geom_line(aes(colour = MALE), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic White Predicted probabilities") + 
-  facet_grid(GDLIN ~ .) +
-  ylab("PredictedProb")
-
-
-ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Other obligations as a percent of total income") +
-  ggtitle("non-Hispanic White Predicted probabilities") + 
-  facet_wrap(MALE ~ .) +
-  ylab("PredictedProb")
-```
-
-```{r eval=FALSE}
-# non-Hispanic Black Male/Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
-newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
-newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
-
-ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
-  geom_line(aes(colour = MALE), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic Black Predicted probabilities") + 
-  facet_grid(GDLIN ~ .) +
-  ylab("PredictedProb")
-
-
-ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic Black Predicted probabilities") + 
-  facet_wrap(MALE ~ .) +
-  ylab("PredictedProb")
-```
-
-```{r eval=FALSE}
-# non-Hispanic Hispanic Male/Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
-newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
-newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
-
-ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
-  geom_line(aes(colour = MALE), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("Hispanic Predicted probabilities") + 
-  facet_grid(GDLIN ~ .) +
-  ylab("PredictedProb")
-
-
-ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("Hispanic Predicted probabilities") + 
-  facet_wrap(MALE ~ .) +
-  ylab("PredictedProb")
-```
-
-```{r eval=FALSE}
-# White Male/Female
-newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT))
-newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
-newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
-newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
-
-ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
-  geom_line(aes(colour = MALE), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic White Black Predicted probabilities") + 
-  facet_grid(GDLIN ~ .) +
-  ylab("PredictedProb")
-
-
-ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
-  geom_line(aes(colour = GDLIN), size = 1)  +
-  theme(legend.position="bottom") +
-  xlab("Loan amount/purchase price %") +
-  ggtitle("non-Hispanic White Black Predicted probabilities") + 
-  facet_wrap(MALE ~ .) +
-  ylab("PredictedProb")
-```
-
-## TBD
+### Logit Model 1
 
 ```{r}
-#
-# newdata21 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
-# newdata22 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MALE = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
-# newdata23 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
+mylogit1
+```
 
+```{r}
 newdata2 <- rbind(newdata21, newdata22, newdata23)
 newdata3 <- cbind(newdata2, predict(mylogit1, newdata = newdata2, type = "link", se = TRUE))
 newdata3 <- within(newdata3, {
@@ -989,13 +626,23 @@ newdata3 <- within(newdata3, {
   UL <- plogis(fit + (1.96 * se.fit))
 })
 #newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "response", se = TRUE))
+```
+
+```{r}
+kable(head(newdata3[,c(1:7,12)])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
 
 
+```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
 #newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
 newdata3$MARRIED <- ifelse(newdata3$MARRIED == 1, "Married", "Not Married")
+
+
+write_csv(newdata3, "logit-OBRAT_1.csv")
 
 
 ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
@@ -1016,6 +663,15 @@ newdata3 <- within(newdata3, {
   LL <- plogis(fit - (1.96 * se.fit))
   UL <- plogis(fit + (1.96 * se.fit))
 })
+```
+
+```{r}
+kable(head(newdata3[,c(1:7,12)])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
+write_csv(newdata3, "logit_LOANPRC_1.csv")
 
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
@@ -1033,7 +689,11 @@ ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) +
   ylab("PredictedProb")
 ```
 
+### Logit Model 2
 
+```{r}
+mylogit2
+```
 
 ```{r}
 newdata2 <- rbind(newdata31, newdata32, newdata33)
@@ -1043,6 +703,16 @@ newdata3 <- within(newdata3, {
   LL <- plogis(fit - (1.96 * se.fit))
   UL <- plogis(fit + (1.96 * se.fit))
 })
+
+```
+
+```{r}
+kable(head(newdata3[,c(1:6,11)])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
+write_csv(newdata3, "logit_OBRAT_2.csv")
 
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
@@ -1074,10 +744,20 @@ newdata3 <- within(newdata3, {
   LL <- plogis(fit - (1.96 * se.fit))
   UL <- plogis(fit + (1.96 * se.fit))
 })
+```
+
+```{r}
+kable(head(newdata3[,c(1:6,11)])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
+write_csv(newdata3, "logit_LOANPRC_2.csv")
 
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
+
 
 ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
   geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
@@ -1097,15 +777,29 @@ ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) +
 ```
 
 
-## TBD
+## Probit Prediction
+
+### Probit Model 1
+
+```{r}
+myprobit1
+```
 
 ```{r}
 newdata2 <- rbind(newdata21, newdata22, newdata23)
 newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
 
+write_csv(newdata3, "probit_OBRAT_1.csv")
+```
+
+```{r}
+kable(head(newdata3)) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
-#newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
 newdata3$MARRIED <- ifelse(newdata3$MARRIED == 1, "Married", "Not Married")
 
@@ -1123,12 +817,19 @@ ggplot(newdata3, aes(x = OBRAT, y = fit)) +
 newdata2 <- rbind(newdata24, newdata25, newdata26)
 newdata3 <- cbind(newdata2, predict(myprobit1, newdata2, type = "response", se.fit = TRUE)[-3])
 
+write_csv(newdata3, "probit_LOANPRC_1.csv")
+```
+
+```{r}
+kable(head(newdata3[,1:6])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
-#newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
 newdata3$MARRIED <- ifelse(newdata3$MARRIED == 1, "Married", "Not Married")
-
 
 ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
   geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
@@ -1139,11 +840,25 @@ ggplot(newdata3, aes(x = LOANPRC, y = fit)) +
   ylab("PredictedProb")
 ```
 
+### Probit Model 2
+
+```{r}
+myprobit2
+```
 
 ```{r}
 newdata2 <- rbind(newdata31, newdata32, newdata33)
 newdata3 <- cbind(newdata2, predict(myprobit2, newdata2, type = "response", se.fit = TRUE)[-3])
 
+write_csv(newdata3, "probit_OBRAT_2.csv")
+```
+
+```{r}
+kable(head(newdata3[,1:6])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
@@ -1170,6 +885,15 @@ ggplot(newdata3, aes(x = OBRAT, y = fit)) +
 newdata2 <- rbind(newdata34, newdata35, newdata36)
 newdata3 <- cbind(newdata2, predict(myprobit2, newdata2, type = "response", se.fit = TRUE)[-3])
 
+write_csv(newdata3, "probit_LOANPRC_2.csv")
+```
+
+```{r}
+kable(head(newdata3[,1:6])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
