@@ -2,8 +2,8 @@
 title: "Lending Mortage Analysis"
 author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 subtitle: Exploratory Data Analysis
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
 ---
@@ -400,7 +400,7 @@ The log odds of loan approval for Black applicants decreases by  `r abs(mylogit0
 
 The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit0$coefficients["HISPAN1"])`.
 
-For a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit0$coefficients["(Intercept)"] + mylogit0$coefficients["GDLIN1"] + mylogit0$coefficients["BLACK1"] + 100 * mylogit0$coefficients["LOANPRC"] + mylogit0$coefficients["MARRIED1"] + mylogit0$coefficients["MALE1"])))), 4))*100`%
+For example, for a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit0$coefficients["(Intercept)"] + mylogit0$coefficients["GDLIN1"] + mylogit0$coefficients["BLACK1"] + 100 * mylogit0$coefficients["LOANPRC"] + mylogit0$coefficients["MARRIED1"] + mylogit0$coefficients["MALE1"])))), 4))*100`%
 
 
 ### Statistical Tests for Individual Predictors
@@ -448,7 +448,7 @@ The log odds of loan approval for Black applicants decreases by `r abs(mylogit1$
 
 The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit1$coefficients["HISPAN1"])`.
 
-For a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit1$coefficients["(Intercept)"] + mylogit1$coefficients["GDLIN1"] + mylogit1$coefficients["BLACK1"] + 100 * mylogit1$coefficients["LOANPRC"] + mylogit1$coefficients["MARRIED1"] )))), 4))*100`%
+For example, for a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit1$coefficients["(Intercept)"] + mylogit1$coefficients["GDLIN1"] + mylogit1$coefficients["BLACK1"] + 100 * mylogit1$coefficients["LOANPRC"] + mylogit1$coefficients["MARRIED1"] )))), 4))*100`%
 
 
 ### CIs using profiled log-likelihood
@@ -500,7 +500,7 @@ The log odds of loan approval for Black applicants decreases by  `r abs(mylogit2
 
 The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit2$coefficients["HISPAN1"])`.
 
-For a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit2$coefficients["(Intercept)"] + mylogit2$coefficients["GDLIN1"] + mylogit2$coefficients["BLACK1"] + 100 * mylogit2$coefficients["LOANPRC"])))), 4))*100`%
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit2$coefficients["(Intercept)"] + mylogit2$coefficients["GDLIN1"] + mylogit2$coefficients["BLACK1"] + 100 * mylogit2$coefficients["LOANPRC"])))), 4))*100`%
 
 ### CIs using profiled log-likelihood
 
@@ -559,24 +559,26 @@ newdata36 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT =
 
 ## Probit Regression Full Model
 
+Probit(approve) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * LOANPRC + b_6 *  MARRIED + b_7 * MALE$
+
 ```{r}
 myprobit0 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC + MARRIED + MALE, data = data1, family = binomial(link = "probit"))
 summary(myprobit0)
 ```
 
-For every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r abs(myprobit0$coefficients["OBRAT"])`.
+For every one unit change in `OBRAT`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit0$coefficients["OBRAT"])`.
 
-For every one unit change in `LOANPRC`, the log odds of loan approval (versus non loan approval) decreases by `r abs(myprobit0$coefficients["LOANPRC"])`.
+For every one unit change in `LOANPRC`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit0$coefficients["LOANPRC"])`.
 
-The log odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit0$coefficients["GDLIN1"])`.
+The probit odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit0$coefficients["GDLIN1"])`.
 
-The log odds of loan approval for married applicants increases by  `r abs(myprobit0$coefficients["MARRIED1"])`.
+The probit odds of loan approval for married applicants increases by  `r abs(myprobit0$coefficients["MARRIED1"])`.
 
-The log odds of loan approval for Black applicants decreases by  `r abs(myprobit0$coefficients["BLACK1"])`.
+The probit odds of loan approval for Black applicants decreases by  `r abs(myprobit0$coefficients["BLACK1"])`.
 
-The log odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit0$coefficients["HISPAN1"])`.
+The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit0$coefficients["HISPAN1"])`.
 
-For a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1- pnorm(-abs((myprobit0$coefficients["(Intercept)"] + myprobit0$coefficients["GDLIN1"] + myprobit0$coefficients["BLACK1"] + 100 * myprobit0$coefficients["LOANPRC"] + myprobit0$coefficients["MARRIED1"] + myprobit0$coefficients["MALE1"]))), 4))*100`%
+For example, for a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit0$coefficients["(Intercept)"] + myprobit0$coefficients["GDLIN1"] + myprobit0$coefficients["BLACK1"] + 100 * myprobit0$coefficients["LOANPRC"] + myprobit0$coefficients["MARRIED1"] + myprobit0$coefficients["MALE1"]))), 4))*100`%
 
 
 ### Statistical Tests for Individual Predictors
@@ -593,6 +595,8 @@ regTermTest(myprobit0, "MARRIED")
 
 ## Probit Regression Reduced Model 1
 
+Probit(approve) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * LOANPRC + b_6 *  MARRIED $
+
 ```{r}
 myprobit1 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN  + LOANPRC + MARRIED, data = data1, family = binomial(link = "probit"))
 summary(myprobit1)
@@ -600,21 +604,23 @@ varImp(myprobit1)
 pR2(myprobit1)  # look for 'McFadden'
 ```
 
-For every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r abs(myprobit1$coefficients["OBRAT"])`.
+For every one unit change in `OBRAT`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit1$coefficients["OBRAT"])`.
 
-For every one unit change in `LOANPRC`, the log odds of loan approval (versus non loan approval) decreases by `r abs(myprobit1$coefficients["LOANPRC"])`.
+For every one unit change in `LOANPRC`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit1$coefficients["LOANPRC"])`.
 
-The log odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit1$coefficients["GDLIN1"])`.
+The probit odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit1$coefficients["GDLIN1"])`.
 
-The log odds of loan approval for married applicants increases by  `r abs(myprobit1$coefficients["MARRIED1"])`.
+The probit odds of loan approval for married applicants increases by  `r abs(myprobit1$coefficients["MARRIED1"])`.
 
-The log odds of loan approval for Black applicants decreases by  `r abs(myprobit1$coefficients["BLACK1"])`.
+The probit odds of loan approval for Black applicants decreases by  `r abs(myprobit1$coefficients["BLACK1"])`.
 
-The log odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit1$coefficients["HISPAN1"])`.
+The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit1$coefficients["HISPAN1"])`.
 
-For a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1- pnorm(-abs((myprobit1$coefficients["(Intercept)"] + myprobit1$coefficients["GDLIN1"] + myprobit1$coefficients["BLACK1"] + 100 * myprobit1$coefficients["LOANPRC"] + myprobit1$coefficients["MARRIED1"]))), 4))*100`%
+For example, for a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit1$coefficients["(Intercept)"] + myprobit1$coefficients["GDLIN1"] + myprobit1$coefficients["BLACK1"] + 100 * myprobit1$coefficients["LOANPRC"] + myprobit1$coefficients["MARRIED1"]))), 4))*100`%
 
 ## Probit Regression Reduced Model 2
+
+Probit(approve) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * LOANPRC $
 
 ```{r}
 myprobit2 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC, data = data1, family = binomial(link = "probit"))
@@ -623,17 +629,17 @@ varImp(myprobit2)
 pR2(myprobit2)  # look for 'McFadden'
 ```
 
-For every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r abs(myprobit2$coefficients["OBRAT"])`.
+For every one unit change in `OBRAT`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit2$coefficients["OBRAT"])`.
 
-For every one unit change in `LOANPRC`, the log odds of loan approval (versus non loan approval) decreases by `r abs(myprobit2$coefficients["LOANPRC"])`.
+For every one unit change in `LOANPRC`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit2$coefficients["LOANPRC"])`.
 
-The log odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit2$coefficients["GDLIN1"])`.
+The probit odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit2$coefficients["GDLIN1"])`.
 
-The log odds of loan approval for Black applicants decreases by  `r abs(myprobit2$coefficients["BLACK1"])`.
+The probit odds of loan approval for Black applicants decreases by  `r abs(myprobit2$coefficients["BLACK1"])`.
 
-The log odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit2$coefficients["HISPAN1"])`.
+The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit2$coefficients["HISPAN1"])`.
 
-For a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1- pnorm(-abs((myprobit2$coefficients["(Intercept)"] + myprobit2$coefficients["GDLIN1"] + myprobit2$coefficients["BLACK1"] + 100 * myprobit2$coefficients["LOANPRC"]))), 4))*100`%
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit2$coefficients["(Intercept)"] + myprobit2$coefficients["GDLIN1"] + myprobit2$coefficients["BLACK1"] + 100 * myprobit2$coefficients["LOANPRC"]))), 4))*100`%
 
 
 ## Model comparison
@@ -643,7 +649,7 @@ anova(myprobit0, myprobit1, myprobit2, test ="Chisq")
 lrtest(myprobit0, myprobit1, myprobit2)
 ```
 
-## Logit Prediction
+## Log Prediction
 
 ### Logit Model 1
 
