@@ -2,8 +2,8 @@
 title: "Lending Mortage Analysis"
 author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 subtitle: Exploratory Data Analysis
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
 ---
@@ -261,21 +261,21 @@ data %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$MALE) %>% map(summary)
 There are 3 records are missing married (MARRIED) field.
 
 ```{r}
-kable(data %>% filter(MARRIED == "Unknown"))  %>%
+kable(data %>% filter(MARRIED == "Unknown")  %>% select(-RACE))  %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
 There are 3 records are missing married (GDLIN) field.
 
 ```{r}
-kable(data %>% filter(GDLIN == "666"))  %>%
+kable(data %>% filter(GDLIN == "666") %>% select(-RACE))  %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
 There are 15 records are missing gender (MALE) field.
 
 ```{r}
-kable(data %>% filter(MALE == "Unknown"))  %>%
+kable(data %>% filter(MALE == "Unknown") %>% select(-RACE))  %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
@@ -351,10 +351,6 @@ data <- read_excel("MLD/MLD Data File.xls")
 # data <- read_excel("MLD Data File.xls")
 ```
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b62b2ee4e42dee0163c757a61a5b15b1d4cfe582
 ```{r}
 data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666")
 data$LOANPRC <- data$LOANPRC * 100
@@ -382,8 +378,7 @@ The data set includes the following variables:
 
 ## Logistic Regression Full Model
 
-log(p/1-p) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * MALE + b_6 * LOANPRC + b_7 * MARRIED$
-
+log(p/1-p) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * LOANPRC + b_6 *  MARRIED + b_7 * MALE$
 
 ```{r}
 data1 <- data %>% filter(MARRIED != ".")
@@ -424,6 +419,9 @@ pR2(mylogit0)  # look for 'McFadden'
 ```
 
 ## Logistic Regression Reduced Model 1
+
+log(p/1-p) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * LOANPRC + b_6 *  MARRIED$
+
 
 ```{r}
 mylogit1 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC + MARRIED , data = data1, family = "binomial")
@@ -478,6 +476,9 @@ exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
 ```
 
 ## Logistic Regression Reduced Model 2
+
+log(p/1-p) = $b_0 + b_1 * GDLIN + b_2 * OBRAT + b_3 * BLACK + b_4 * HISPAN + b_5 * LOANPRC$
+
 
 ```{r}
 mylogit2 <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN  + LOANPRC , data = data1, family = "binomial")
@@ -535,8 +536,6 @@ lrtest(mylogit0, mylogit1, mylogit2)
 ```{r}
 AVG_LOANPRC <- mean(data$LOANPRC)
 AVG_OBRAT <- mean(data$OBRAT)
-
-#newdata2 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MALE = factor(rep(0:1, each = 96)), LOANPRC = 86.05))
 
 newdata21 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
 newdata22 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
@@ -644,36 +643,6 @@ anova(myprobit0, myprobit1, myprobit2, test ="Chisq")
 lrtest(myprobit0, myprobit1, myprobit2)
 ```
 
-<!-- ## Probit Regression Reduced Model 3 -->
-
-<!-- ```{r} -->
-<!-- myprobit3 <- glm(APPROVE ~  GDLIN  + BLACK + HISPAN + MALE + LOANPRC , data = data, family = binomial(link = "probit")) -->
-<!-- myprobit3 -->
-<!-- varImp(myprobit3) -->
-<!-- pR2(myprobit3)  # look for 'McFadden' -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- anova(myprobit0, myprobit3, test ="Chisq") -->
-<!-- lrtest(myprobit0, myprobit3) -->
-<!-- ``` -->
-
-<!-- ## Probit Regression Reduced Model 4 -->
-
-<!-- ```{r} -->
-<!-- myprobit4 <- glm(APPROVE ~  GDLIN  + BLACK + HISPAN  + LOANPRC , data = data, family = binomial(link = "probit")) -->
-<!-- myprobit4 -->
-<!-- varImp(myprobit4) -->
-<!-- pR2(myprobit4)  # look for 'McFadden' -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- anova(myprobit1, myprobit4, test ="Chisq") -->
-<!-- lrtest(myprobit1, myprobit4) -->
-<!-- ``` -->
-
-
-
 ## Logit Prediction
 
 ### Logit Model 1
@@ -702,13 +671,10 @@ kable(head(newdata3[,c(1:7,12)])) %>%
 ```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
-#newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
 newdata3$MARRIED <- ifelse(newdata3$MARRIED == 1, "Married", "Not Married")
 
-
 write_csv(newdata3, "logit-OBRAT_1.csv")
-
 
 ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
   geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
@@ -740,7 +706,6 @@ write_csv(newdata3, "logit_LOANPRC_1.csv")
 
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
 newdata3$RACE  <- as.factor(newdata3$RACE)
-#newdata3$MALE <- ifelse(newdata3$MALE == 1, "Male", "Female")
 newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
 newdata3$MARRIED <- ifelse(newdata3$MARRIED == 1, "Married", "Not Married")
 
