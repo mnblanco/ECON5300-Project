@@ -1,0 +1,265 @@
+---
+title: "Lending Mortage Analysis - Modeling"
+author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
+output:
+  pdf_document: default
+  html_document: default
+subtitle: Exploratory Data Analysis
+geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
+---
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+options(scipen=999)
+library(readr)
+library(ggplot2)
+library(readxl)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(purrr)
+library(ggthemes)
+library(aod)
+library(lmtest)
+library(survey)
+library(caret)
+library(pscl)
+library(survey)
+```
+
+```{r}
+data <- read_excel("MLD/MLD Data File.xls")
+data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666") %>% filter(LOANPRC < 1)
+data$LOANPRC <- data$LOANPRC * 100
+data$GDLIN <- as.factor(data$GDLIN)
+data$MARRIED <- as.factor(data$MARRIED)
+data$MALE <- as.factor(data$MALE)
+data$APPROVE <- as.factor(data$APPROVE)
+data$BLACK <- as.factor(data$BLACK)
+data$HISPAN <- as.factor(data$HISPAN)
+```
+
+```{r}
+AVG_LOANPRC <- mean(data$LOANPRC)
+AVG_OBRAT <- mean(data$OBRAT)
+
+newdata21 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
+newdata22 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
+newdata23 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
+
+
+newdata24 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata25 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata26 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+
+
+newdata31 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
+newdata32 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(1), LOANPRC = AVG_LOANPRC))
+newdata33 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
+
+
+newdata34 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata35 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata36 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+
+
+newdata41 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 1)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
+newdata42 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 1)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), LOANPRC = AVG_LOANPRC))
+newdata43 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 1)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
+```
+
+## Data Discription
+
+The data set includes the following variables: 
+
++ APPROVE = 1 if mortgage loan was approved, = 0 otherwise
++ GDLIN = 1 if credit history meets guidelines, = 0 otherwise
++ LOANPRC = loan amount/purchase price
++ OBRAT = other obligations as a percent of total income
++ MALE = 1 if male, = 0 otherwise
++ MARRIED = 1 if married, = 0 otherwise
++ BLACK = 1 if black, = 0 otherwise
++ HISPAN = 1 if Hispanic, = 0 otherwise
+
+## Logistic Model
+
+$$log(p/1-p) = \beta_0 + \beta_1 * GDLIN + \beta_2 * OBRAT + \beta_3 * BLACK + \beta_4 * HISPAN + \beta_5 * LOANPRC$$
+
+
+```{r}
+mylogit <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN  + LOANPRC , data = data, family = "binomial")
+mylogit
+```
+
+For every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r abs(mylogit$coefficients["OBRAT"])`.
+
+For every one unit change in `LOANPRC`, the log odds of loan approval (versus non loan approval) decreases by `r abs(mylogit$coefficients["LOANPRC"])`.
+
+The log odds of loan approval for applicants that meet credit guidelines increases by  `r abs(mylogit$coefficients["GDLIN1"])`.
+
+The log odds of loan approval for Black applicants decreases by  `r abs(mylogit$coefficients["BLACK1"])`.
+
+The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit$coefficients["HISPAN1"])`.
+
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit$coefficients["(Intercept)"] + mylogit$coefficients["GDLIN1"] + mylogit$coefficients["BLACK1"] + 100 * mylogit$coefficients["LOANPRC"])))), 4))*100`%
+
+### CIs using profiled log-likelihood
+
+```{r}
+confint(mylogit)
+```
+
+### CIs using standard errors
+
+```{r}
+confint.default(mylogit)
+```
+
+### Odds ratios only
+
+```{r}
+exp(coef(mylogit))
+```
+
+### Odds ratios and 95% CI
+
+```{r}
+exp(cbind(OR = coef(mylogit), confint(mylogit)))
+```
+
+```{r}
+newdata2 <- rbind(newdata31, newdata32, newdata33)
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+  PredictedProb <- plogis(fit)
+  LL <- plogis(fit - (1.96 * se.fit))
+  UL <- plogis(fit + (1.96 * se.fit))
+})
+
+newdata4 <- rbind(newdata41, newdata42, newdata43)
+newdata5 <- cbind(newdata4, predict(mylogit, newdata = newdata4, type = "link", se = TRUE))
+newdata5 <- within(newdata5, {
+  PredictedProb <- plogis(fit)
+  LL <- plogis(fit - (1.96 * se.fit))
+  UL <- plogis(fit + (1.96 * se.fit))
+})
+```
+
+```{r}
+kable(head(newdata5[,c(1:6,11)])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
+write_csv(newdata3, "logit_OBRAT.csv")
+
+newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
+newdata3$RACE  <- as.factor(newdata3$RACE)
+newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
+
+ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) + 
+  geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
+  theme(legend.position="bottom") +
+  xlab("Other obligations as a percent of total income") +
+  ggtitle("Predicted probabilities (LOANPRC = 75.44245%)") + 
+  facet_wrap(GDLIN ~ ., scales="free") +
+  ylab("PredictedProb")
+```
+
+```{r}
+newdata2 <- rbind(newdata34, newdata35, newdata36)
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link", se = TRUE))
+newdata3 <- within(newdata3, {
+  PredictedProb <- plogis(fit)
+  LL <- plogis(fit - (1.96 * se.fit))
+  UL <- plogis(fit + (1.96 * se.fit))
+})
+```
+
+```{r}
+write_csv(newdata3, "logit_LOANPRC.csv")
+
+newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
+newdata3$RACE  <- as.factor(newdata3$RACE)
+newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
+
+ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) + 
+  geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
+  theme(legend.position="bottom") +
+  xlab("Loan amount/purchase price %") +
+  ggtitle("Predicted probabilities (OBRAT = 32.35767)") + 
+  facet_wrap(GDLIN ~ ., scales="free") +
+  ylab("PredictedProb")
+```
+
+### Probit Model
+
+$$Probit(approve) = \beta_0 + \beta_1 * GDLIN + \beta_2 * OBRAT + \beta_3 * BLACK + \beta_4 * HISPAN + \beta_5 * LOANPRC $$
+
+```{r}
+myprobit <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC, data = data, family = binomial(link = "probit"))
+summary(myprobit)
+```
+
+For every one unit change in `OBRAT`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit$coefficients["OBRAT"])`.
+
+For every one unit change in `LOANPRC`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(myprobit$coefficients["LOANPRC"])`.
+
+The probit odds of loan approval for applicants that meet credit guidelines increases by  `r abs(myprobit$coefficients["GDLIN1"])`.
+
+The probit odds of loan approval for Black applicants decreases by  `r abs(myprobit$coefficients["BLACK1"])`.
+
+The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit$coefficients["HISPAN1"])`.
+
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit$coefficients["(Intercept)"] + myprobit$coefficients["GDLIN1"] + myprobit$coefficients["BLACK1"] + 100 * myprobit$coefficients["LOANPRC"]))), 4))*100`%
+
+```{r}
+newdata2 <- rbind(newdata31, newdata32, newdata33)
+newdata3 <- cbind(newdata2, predict(myprobit, newdata2, type = "response", se.fit = TRUE)[-3])
+write_csv(newdata3, "probit_OBRAT.csv")
+
+newdata4 <- rbind(newdata41, newdata42, newdata43)
+newdata5 <- cbind(newdata4, predict(myprobit, newdata2, type = "response", se.fit = TRUE)[-3])
+```
+
+```{r}
+kable(head(newdata5[,1:6])) %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r}
+newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
+newdata3$RACE  <- as.factor(newdata3$RACE)
+newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
+
+ggplot(newdata3, aes(x = OBRAT, y = fit)) + 
+  geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
+  theme(legend.position="bottom") +
+  xlab("Other obligations as a percent of total income") +
+  ggtitle("Predicted probabilities (LOANPRC = 75.44245%)") + 
+  facet_wrap(GDLIN ~ ., scales="free") +
+  ylab("PredictedProb")
+```
+
+
+```{r}
+newdata2 <- rbind(newdata34, newdata35, newdata36)
+newdata3 <- cbind(newdata2, predict(myprobit, newdata2, type = "response", se.fit = TRUE)[-3])
+write_csv(newdata3, "probit_LOANPRC.csv")
+```
+
+```{r}
+newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
+newdata3$RACE  <- as.factor(newdata3$RACE)
+newdata3$GDLIN <- ifelse(newdata3$GDLIN == 1, "Meets guidelines", "Does not meet guidelines")
+
+ggplot(newdata3, aes(x = LOANPRC, y = fit)) + 
+  geom_line(aes(colour = RACE, linetype = RACE), size = 1)  +
+  theme(legend.position="bottom") +
+  xlab("Loan amount/purchase price %") +
+  ggtitle("Predicted probabilities (OBRAT = 32.35767)") + 
+  facet_wrap(GDLIN ~ ., scales="free") +
+  ylab("PredictedProb")
+```
+
