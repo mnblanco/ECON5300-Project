@@ -2,8 +2,8 @@
 title: "Lending Mortage Analysis"
 author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 subtitle: Exploratory Data Analysis
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
 ---
@@ -400,7 +400,7 @@ The log odds of loan approval for Black applicants decreases by  `r abs(mylogit0
 
 The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit0$coefficients["HISPAN1"])`.
 
-For example, for a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit0$coefficients["(Intercept)"] + mylogit0$coefficients["GDLIN1"] + mylogit0$coefficients["BLACK1"] + 100 * mylogit0$coefficients["LOANPRC"] + mylogit0$coefficients["MARRIED1"] + mylogit0$coefficients["MALE1"])))), 4))*100`%
+For example, for a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log predicted probability of loan approval is `r (round(1 / (1 + (exp(-(mylogit0$coefficients["(Intercept)"] + mylogit0$coefficients["GDLIN1"] + mylogit0$coefficients["BLACK1"] + 100 * mylogit0$coefficients["LOANPRC"] + mylogit0$coefficients["MARRIED1"] + mylogit0$coefficients["MALE1"])))), 4))*100`%
 
 
 ### Statistical Tests for Individual Predictors
@@ -448,7 +448,7 @@ The log odds of loan approval for Black applicants decreases by `r abs(mylogit1$
 
 The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit1$coefficients["HISPAN1"])`.
 
-For example, for a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit1$coefficients["(Intercept)"] + mylogit1$coefficients["GDLIN1"] + mylogit1$coefficients["BLACK1"] + 100 * mylogit1$coefficients["LOANPRC"] + mylogit1$coefficients["MARRIED1"] )))), 4))*100`%
+For example, for a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log predicted probability of loan approval is `r (round(1 / (1 + (exp(-(mylogit1$coefficients["(Intercept)"] + mylogit1$coefficients["GDLIN1"] + mylogit1$coefficients["BLACK1"] + 100 * mylogit1$coefficients["LOANPRC"] + mylogit1$coefficients["MARRIED1"] )))), 4))*100`%
 
 
 ### CIs using profiled log-likelihood
@@ -500,7 +500,7 @@ The log odds of loan approval for Black applicants decreases by  `r abs(mylogit2
 
 The log odds of loan approval for Hispanic applicants decreases by  `r abs(mylogit2$coefficients["HISPAN1"])`.
 
-For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(mylogit2$coefficients["(Intercept)"] + mylogit2$coefficients["GDLIN1"] + mylogit2$coefficients["BLACK1"] + 100 * mylogit2$coefficients["LOANPRC"])))), 4))*100`%
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log predicted probability of loan approval is `r (round(1 / (1 + (exp(-(mylogit2$coefficients["(Intercept)"] + mylogit2$coefficients["GDLIN1"] + mylogit2$coefficients["BLACK1"] + 100 * mylogit2$coefficients["LOANPRC"])))), 4))*100`%
 
 ### CIs using profiled log-likelihood
 
@@ -578,7 +578,7 @@ The probit odds of loan approval for Black applicants decreases by  `r abs(mypro
 
 The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit0$coefficients["HISPAN1"])`.
 
-For example, for a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit0$coefficients["(Intercept)"] + myprobit0$coefficients["GDLIN1"] + myprobit0$coefficients["BLACK1"] + 100 * myprobit0$coefficients["LOANPRC"] + myprobit0$coefficients["MARRIED1"] + myprobit0$coefficients["MALE1"]))), 4))*100`%
+For example, for a black married male whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit predicted probability of loan approval is `r (round(1- pnorm(-abs((myprobit0$coefficients["(Intercept)"] + myprobit0$coefficients["GDLIN1"] + myprobit0$coefficients["BLACK1"] + 100 * myprobit0$coefficients["LOANPRC"] + myprobit0$coefficients["MARRIED1"] + myprobit0$coefficients["MALE1"]))), 4))*100`%
 
 
 ### Statistical Tests for Individual Predictors
@@ -616,7 +616,7 @@ The probit odds of loan approval for Black applicants decreases by  `r abs(mypro
 
 The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit1$coefficients["HISPAN1"])`.
 
-For example, for a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit1$coefficients["(Intercept)"] + myprobit1$coefficients["GDLIN1"] + myprobit1$coefficients["BLACK1"] + 100 * myprobit1$coefficients["LOANPRC"] + myprobit1$coefficients["MARRIED1"]))), 4))*100`%
+For example, for a black married person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit predicted probability of loan approval is `r (round(1- pnorm(-abs((myprobit1$coefficients["(Intercept)"] + myprobit1$coefficients["GDLIN1"] + myprobit1$coefficients["BLACK1"] + 100 * myprobit1$coefficients["LOANPRC"] + myprobit1$coefficients["MARRIED1"]))), 4))*100`%
 
 ## Probit Regression Reduced Model 2
 
@@ -639,7 +639,7 @@ The probit odds of loan approval for Black applicants decreases by  `r abs(mypro
 
 The probit odds of loan approval for Hispanic applicants decreases by  `r abs(myprobit2$coefficients["HISPAN1"])`.
 
-For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((myprobit2$coefficients["(Intercept)"] + myprobit2$coefficients["GDLIN1"] + myprobit2$coefficients["BLACK1"] + 100 * myprobit2$coefficients["LOANPRC"]))), 4))*100`%
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit predicted probability of loan approval is `r (round(1- pnorm(-abs((myprobit2$coefficients["(Intercept)"] + myprobit2$coefficients["GDLIN1"] + myprobit2$coefficients["BLACK1"] + 100 * myprobit2$coefficients["LOANPRC"]))), 4))*100`%
 
 
 ## Model comparison
