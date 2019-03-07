@@ -2,8 +2,8 @@
 title: "Lending Mortage Analysis"
 author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 subtitle: Exploratory Data Analysis
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
 ---
@@ -79,6 +79,13 @@ ggplot(data,  aes(OBRAT)) +
   facet_grid(RACE ~ ., scales="free")
 
 
+ggplot(data,  aes(LOANPRC)) +
+  geom_histogram(binwidth = 1)  +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 1, 
+                                   size = 12, hjust = 1)) + 
+  xlab("Loan amount/purchase price %") +
+  facet_grid(RACE ~ ., scales="free")
 
 data1 <- data
 
@@ -280,6 +287,24 @@ kable(data %>% filter(MALE == "Unknown") %>% select(-RACE))  %>%
 ```
 
 ```{r}
+data1 <- data %>% filter(data$LOANPRC > 100)
+```
+
+There are `r nrow(data1)` records (`r (nrow(data1) / nrow(data)) *100` %) that have LOANPRC > 100%.  There are a total of `r nrow(data)` records.
+
+```{r}
+
+kable(data1 %>%  select(-RACE))  %>%  #filter(OVER100 == 1) %>%
+  kable_styling(bootstrap_options = "striped")
+
+
+data %>% filter(data$LOANPRC <= 100) %>% select(-c(ID, BLACK, HISPAN)) %>% split(.$RACE) %>% map(summary) 
+
+
+#data$LOANPRC <- NULL
+```
+
+```{r}
 xtabs(~RACE + APPROVE, data = data)
 
 
@@ -352,7 +377,7 @@ data <- read_excel("MLD/MLD Data File.xls")
 ```
 
 ```{r}
-data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666")
+data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666") %>% filter(LOANPRC < 1)
 data$LOANPRC <- data$LOANPRC * 100
 data$GDLIN <- as.factor(data$GDLIN)
 
@@ -542,9 +567,9 @@ newdata22 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT =
 newdata23 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 192)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 96)), LOANPRC = AVG_LOANPRC))
 
 
-newdata24 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
-newdata25 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
-newdata26 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
+newdata24 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata25 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata26 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 200)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), MARRIED = factor(rep(0:1, each = 100)), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
 
 
 newdata31 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(1), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
@@ -552,9 +577,9 @@ newdata32 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = 
 newdata33 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 96)), OBRAT = rep(seq(from = 0, to = 95, length.out = 96)), BLACK = factor(0), HISPAN = factor(0), LOANPRC = AVG_LOANPRC))
 
 
-newdata34 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
-newdata35 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
-newdata36 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 257.143, length.out = 100))))
+newdata34 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(1), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata35 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(1), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
+newdata36 <- with(data, data.frame(GDLIN = factor(rep(0:1, each = 100)), OBRAT = AVG_OBRAT, BLACK = factor(0), HISPAN = factor(0), LOANPRC = rep(seq(from = 2.105, to = 100, length.out = 100))))
 ```
 
 ## Probit Regression Full Model
