@@ -371,3 +371,18 @@ newdata4$ProbitProb <- predict(ProbitModel, newdata = newdata4, type = "response
 kable(newdata4) %>%
   kable_styling(bootstrap_options = "striped")
 ```
+
+
+
+
+Comparing predicted probabilities of approval from two models, the difference for a Black person whose credit history meets guidelines (`GDLIN` = 1), at average other debt obligations related to total income (`OBRAT` = 32.36%) and at average loan amount relative to price of the property (`LOANPRC` = 75.44%) is `r  abs(round(newdata4$LogitProb[2] - newdata4$ProbitProb[2], 3))* 100` percentage points. 
+
+
+
+
+
+
+
+
+
+
