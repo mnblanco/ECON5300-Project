@@ -2,8 +2,8 @@
 title: "Lending Mortage Analysis - Modeling"
 author: "Marjorie Blanco, Joe Thompson, Haodi Tu"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 subtitle: Exploratory Data Analysis
 geometry: left=2cm,right=3cm,top=2cm,bottom=2cm
 ---
@@ -31,11 +31,11 @@ library(stargazer)
 
 
 ```{r}
-data <- read_excel("MLD/MLD Data File.xls")
+# data <- read_excel("MLD/MLD Data File.xls")
 ```
 
 ```{r}
-# data <- read_excel("MLD Data File.xls")
+data <- read_excel("MLD Data File.xls")
 ```
 
 ```{r}
@@ -133,17 +133,7 @@ stargazer(LogitModel,
           title = "Odds Ratio")
 ```
 
-For every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r abs(LogitModel$coefficients["OBRAT"])`.
 
-For every one unit change in `LOANPRC`, the log odds of loan approval (versus non loan approval) decreases by `r abs(LogitModel$coefficients["LOANPRC"])`.
-
-The log odds of loan approval for applicants that meet credit guidelines increases by  `r abs(LogitModel$coefficients["GDLIN1"])`.
-
-The log odds of loan approval for Black applicants decreases by  `r abs(LogitModel$coefficients["BLACK1"])`.
-
-The log odds of loan approval for Hispanic applicants decreases by  `r abs(LogitModel$coefficients["HISPAN1"])`.
-
-For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the log odds of loan approval is `r (round(1 / (1 + (exp(-(LogitModel$coefficients["(Intercept)"] + LogitModel$coefficients["GDLIN1"] + LogitModel$coefficients["BLACK1"] + 100 * LogitModel$coefficients["LOANPRC"])))), 4))*100`%
 
 ### CIs using profiled log-likelihood
 
@@ -168,6 +158,13 @@ exp(coef(LogitModel))
 ```{r}
 exp(cbind(OR = coef(LogitModel), confint(LogitModel)))
 ```
+
+Holding `GDLIN1`, `LOANPRC` and `Race` constant, for every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r round(abs(1- exp(LogitModel$coefficients["OBRAT"])),2)*100`%; 95% confidence interval [CI] = 0.95, 0.99.
+
+Holding `GDLIN1`, `OBRAT` and `Race` constant, for every one unit change in `LOANPRC`, the log odds of loan approval (versus non loan approval) decreases by `r round(abs(1- exp(LogitModel$coefficients["LOANPRC"])),2)*100`%; 95% confidence interval [CI] = 0.97, 1.00.
+
+Holding GDLIN1, OBRAT and Race constant, the log odds of loan approval for applicants that meet credit guidelines over the odds of applicants that do not meet credit guidelines is `r round(abs(exp(LogitModel$coefficients["GDLIN1"])),2)`%, 95% confidence interval [CI] = 27.45, 65.50.
+
 
 ```{r}
 newdata2 <- rbind(newdata31, newdata32, newdata33)
@@ -221,6 +218,11 @@ kable(head(newdata5)) %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+The predicted probability of approval for a Black person whose credit history meets guidelines (`GDLIN` = 1), at average other debt obligations related to total income (`OBRAT` = 32.36%) and at average loan amount relative to price of the property (`LOANPRC` = 75.44%) is `r  round(newdata5$PredictedProb[2], 2)*100`%. White person with the same conditions has higher probability to approve, the predicted probability gap is `r  round(newdata5$PredictedProb[6]- newdata5$PredictedProb[2], 2)*100` percentage points. 
+
+The predicted probability gap between White and Hispan people under the same background (credit history met guidelines, OBRAT and LOANPRC at the same rate) is `r  round(newdata5$PredictedProb[6]- newdata5$PredictedProb[4], 2)*100` percentage points.
+
+
 ```{r}
 write_csv(newdata3, "logit_OBRAT.csv")
 
@@ -236,6 +238,9 @@ ggplot(newdata3, aes(x = OBRAT, y = PredictedProb)) +
   facet_wrap(GDLIN ~ ., scales="free") +
   ylab("PredictedProb") + ylim(c(0,1))
 ```
+
+The figure above illustrates that the comparison of predicted probability for people with diffierent race when loan price is 75.4% using logit model. When guidelines are not met, gap of predicted probability of approval between White and Hispanic decreases as percentage of other obligations increases, similar with Black. Black and Hispanic have similar predicted probability. On the contrary, gap between White and Hispanic (and Black) increase as percentage of other obligations increases.
+
 
 ```{r}
 newdata2 <- rbind(newdata34, newdata35, newdata36)
@@ -265,13 +270,17 @@ ggplot(newdata3, aes(x = LOANPRC, y = PredictedProb)) +
   ylab("PredictedProb") + ylim(c(0,1))
 ```
 
+The figure above illustrates that the comparison of predicted probability for people with diffierent race when other obligation is 32.4% using logit model. Similar patterns with figure 1, except the prodicted probability gap is larger between white and other race (Black and Hispanic) when guidelines are not met, and the gap is smaller when guidelines are met. 
+
+
+
 ### Probit Model
 
 $$Probit(approve) = \beta_0 + \beta_1 * GDLIN + \beta_2 * OBRAT + \beta_3 * BLACK + \beta_4 * HISPAN + \beta_5 * LOANPRC $$
 
 ```{r}
 ProbitModel <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN + LOANPRC, data = data, family = binomial(link = "probit"))
-summary(ProbitModel)
+#summary(ProbitModel)
 
 
 #Generate Log-Likelihood
@@ -284,17 +293,8 @@ stargazer(ProbitModel,
           title = "Probit Regression")
 ```
 
-For every one unit change in `OBRAT`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(ProbitModel$coefficients["OBRAT"])`.
 
-For every one unit change in `LOANPRC`, the probit odds of loan approval (versus non loan approval) decreases by `r abs(ProbitModel$coefficients["LOANPRC"])`.
-
-The probit odds of loan approval for applicants that meet credit guidelines increases by  `r abs(ProbitModel$coefficients["GDLIN1"])`.
-
-The probit odds of loan approval for Black applicants decreases by  `r abs(ProbitModel$coefficients["BLACK1"])`.
-
-The probit odds of loan approval for Hispanic applicants decreases by  `r abs(ProbitModel$coefficients["HISPAN1"])`.
-
-For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the probit odds of loan approval is `r (round(1- pnorm(-abs((ProbitModel$coefficients["(Intercept)"] + ProbitModel$coefficients["GDLIN1"] + ProbitModel$coefficients["BLACK1"] + 100 * ProbitModel$coefficients["LOANPRC"]))), 4))*100`%
+For example, for a black person whose credit history meets guidline (GDLIN = 1), loan amount price is 100 (LOANPRC = 100) and other obligations as a percent of total income is none (OBRAT = 0), the predicted probablity of loan approval is `r (round(pnorm(-abs((ProbitModel$coefficients["(Intercept)"] + ProbitModel$coefficients["GDLIN1"] + ProbitModel$coefficients["BLACK1"] + 100 * ProbitModel$coefficients["LOANPRC"]))), 4))*100`%
 
 ```{r}
 newdata2 <- rbind(newdata31, newdata32, newdata33)
@@ -318,6 +318,12 @@ sum(ProbitModel$coefficients * matrix(c(1, 1, 32.35767, 0, 0, 75.44245)))
 kable(head(newdata6)) %>%
   kable_styling(bootstrap_options = "striped")
 ```
+
+The predicted probability of approval for a Black person whose credit history meets guidelines (`GDLIN` = 1), at average other debt obligations related to total income (`OBRAT` = 32.36%) and at average loan amount relative to price of the property (`LOANPRC` = 75.44%) is `r  round(newdata6$PredictedProb[2], 2)*100`%. White person with the same conditions has higher probability to approve, the predicted probability gap is `r  round(newdata6$PredictedProb[6]- newdata6$PredictedProb[2], 2)*100` percentage points. 
+
+The predicted probability gap between White and Hispan people under the same background (credit history met guidelines, OBRAT and LOANPRC at the same rate) is `r  round(newdata6$PredictedProb[6]- newdata6$PredictedProb[4], 2)*100` percentage points.
+
+
 
 ```{r}
 newdata3$RACE <- ifelse(newdata3$BLACK == 1, "non-Hispanic Black", ifelse(newdata3$HISPAN == 1, "Hispanic", "non-Hispanic White"))
