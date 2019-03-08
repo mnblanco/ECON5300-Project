@@ -1,0 +1,40 @@
+
+% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
+% Date and time: Wed, Mar 06, 2019 - 22:44:18
+\begin{table}[!htbp] \centering 
+  \caption{TBD} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & APPROVE \\ 
+\hline \\[-1.8ex] 
+ GDLIN1 & 3.737$^{***}$ \\ 
+  & (0.221) \\ 
+  & \\ 
+ OBRAT & $-$0.031$^{***}$ \\ 
+  & (0.011) \\ 
+  & \\ 
+ BLACK1 & $-$0.917$^{***}$ \\ 
+  & (0.246) \\ 
+  & \\ 
+ HISPAN1 & $-$0.827$^{**}$ \\ 
+  & (0.324) \\ 
+  & \\ 
+ LOANPRC & $-$0.017$^{**}$ \\ 
+  & (0.007) \\ 
+  & \\ 
+ Constant & 1.533$^{**}$ \\ 
+  & (0.699) \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & 1,888 \\ 
+Log Likelihood & $-$451.261 \\ 
+Akaike Inf. Crit. & 914.523 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 

@@ -27,15 +27,29 @@ library(caret)
 library(pscl)
 library(survey)
 library(stargazer)
+library(foreign)
 ```
 
 
 ```{r}
 data <- read_excel("MLD/MLD Data File.xls")
+data <- data.frame(data)
+
+data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666") %>% filter(LOANPRC < 1)
+data$LOANPRC <- data$LOANPRC * 100
+
+stargazer(data, type = "text", title="Descriptive statistics", digits=2)
+
+stargazer(data %>% filter(BLACK == 0) %>% filter(HISPAN == 0) %>% select(-c(BLACK, HISPAN)), type = "text", title="Descriptive statistics - non-Hispanic White", digits=2)
+
+stargazer(data %>% filter(BLACK == 1) %>% filter(HISPAN == 0) %>% select(-BLACK), type = "text", title="Descriptive statistics - non-Hispanic Black", digits=2)
+
+stargazer(data %>% filter(BLACK == 0) %>% filter(HISPAN == 1) %>% select(-HISPAN), type = "text", title="Descriptive statistics - Hispanic", digits=2)
+
 ```
 
 ```{r}
-# data <- read_excel("MLD Data File.xls")
+#data <- read_excel("MLD Data File.xls")
 ```
 
 ```{r}
@@ -45,8 +59,6 @@ data <- read_excel("MLD/MLD Data File.xls")
 ```
 
 ```{r}
-data <- data %>% filter(MALE != ".") %>% filter(GDLIN != "666") %>% filter(LOANPRC < 1)
-data$LOANPRC <- data$LOANPRC * 100
 data$GDLIN <- as.factor(data$GDLIN)
 data$MARRIED <- as.factor(data$MARRIED)
 data$MALE <- as.factor(data$MALE)
@@ -55,15 +67,27 @@ data$BLACK <- as.factor(data$BLACK)
 data$HISPAN <- as.factor(data$HISPAN)
 ```
 
+```{r}
+
+```
+
 
 ```{r eval=FALSE}
 #Descriptive statistics by Race:
 
-stargazer(data %>% filter(BLACK == 0) %>% filter(HISPAN == 0), type = "text", title="Descriptive statistics - non-Hispanic White", digits=2)
 
-stargazer(data %>% filter(BLACK == 1) %>% filter(HISPAN == 0), type = "text", title="Descriptive statistics - non-Hispanic Black", digits=2)
 
-stargazer(data %>% filter(BLACK == 0) %>% filter(HISPAN == 1), type = "text", title="Descriptive statistics - Hispanic", digits=2)
+
+```
+
+```{r}
+### Overall
+summary(data)
+
+data$RACE <- ifelse(data$BLACK == 1, "non-Hispanic Black", ifelse(data$HISPAN == 1, "Hispanic", "non-Hispanic White"))
+data$RACE <-as.factor(data$RACE)
+data %>% select(-c(BLACK, HISPAN)) %>% split(.$RACE) %>% map(summary) 
+
 ```
 
 ```{r}
@@ -114,7 +138,13 @@ $$log(p/1-p) = \beta_0 + \beta_1 * GDLIN + \beta_2 * OBRAT + \beta_3 * BLACK + \
 
 
 ```{r}
+library(nnet)
 LogitModel <- glm(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN  + LOANPRC , data = data, family = "binomial")
+
+data1  <- data %>% mutate(APPROVE = ifelse(APPROVE == 1, "Yes", ifelse(APPROVE == 0, "No", "Unknown")))
+data1$APPROVE <- as.factor(data1$APPROVE)
+data1$APPROVE = relevel(data1$APPROVE, ref = "Yes")
+multi1 = multinom(APPROVE ~  GDLIN + OBRAT + BLACK + HISPAN  + LOANPRC , data = data1)
 
 #Generate Log-Likelihood
 logLik(LogitModel)
@@ -131,7 +161,17 @@ stargazer(LogitModel,
           type="text", 
           apply.coef = OR, 
           title = "Odds Ratio")
+
+stargazer(multi1, type="text")
 ```
+
+```{r}
+or <- exp(coef(LogitModel))
+```
+
+
+Controlling for other variables, applicants who meet the credit guidelines have an estimate of `r or[2]` times higher odds of loan approval than the applicants who do not meet the credit guidelines.  We find that after controlling for all other variables, odds of loan approval for White applicants are 2.46 times and 3.24 times greater in comparison to Blacks and Hispanics respectively.
+
 
 For every one unit change in `OBRAT`, the log odds of loan approval (versus non loan approval) decreases by `r abs(LogitModel$coefficients["OBRAT"])`.
 
@@ -220,6 +260,21 @@ plogis(sum(LogitModel$coefficients * matrix(c(1, 1, 32.35767, 0, 0, 75.44245))))
 kable(head(newdata5)) %>%
   kable_styling(bootstrap_options = "striped")
 ```
+
+
+```{r echo=FALSE}
+# We observe that White applicants who meet the credit guidelines with DTI and LTV evaluated at the mean of data set have approximately 13.94% point higher probability of loan approval than similar Black applicants.
+
+0.3235738 - 0.1604961
+
+0.9525447 -0.8891615
+```
+
+This table represents the predicted probability of some prototypical individuals across different races from Logit model. This table shows that Black and Hispanic applicants are less likely to receive loan approval in comparison to White applicants. 
+
+We observe that White applicants who meet the credit guidelines with DTI and LTV evaluated at the mean of data set have approximately 16.3% point higher probability of loan approval than similar Black applicants.
+
+We observe that White applicants who do not meet the credit guidelines with DTI and LTV evaluated at the mean of data set have approximately 6.3% point higher probability of loan approval than similar Black applicants. 
 
 ```{r}
 write_csv(newdata3, "logit_OBRAT.csv")
